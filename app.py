@@ -338,6 +338,7 @@ def social_scout():
 
 # AI LEADFINDER
 import time
+import os
 from flask import Flask, render_template, request, session
 from selenium import webdriver
 from selenium.webdriver.common.by import By
@@ -346,20 +347,15 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 
-
 # Scraping function to get business data
 def scrape_data(industry, location):
     options = Options()
-<<<<<<< HEAD
     # Check multiple common paths for the Chrome binary
     possible_paths = ["/usr/bin/google-chrome", "/usr/local/bin/google-chrome"]
     for path in possible_paths:
         if os.path.exists(path):
             options.binary_location = path
             break
-=======
-    options.binary_location = "/usr/bin/google-chrome"  # Specify the Chrome binary location
->>>>>>> 8c2f61fb53ceb3ace051723161c3bca2f1a4d1ac
     options.add_argument('--headless')  # Run headless without opening a browser window
     options.add_argument('--no-sandbox')  # Add this line if needed
     options.add_argument('--disable-dev-shm-usage')  # Add this line if needed
@@ -455,7 +451,6 @@ def leadfinder():
 def insights():
     return render_template('dashboard.html', 
                            business_name_count=session.get('business_name_count', 0))
-
 
 
 # Lead Qualifier---------------------------
