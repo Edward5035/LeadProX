@@ -349,9 +349,11 @@ from selenium.webdriver.chrome.options import Options
 
 # Scraping function to get business data
 def scrape_data(industry, location):
-    options = Options()
-    options.add_argument('--headless')  # Run headless without opening a browser window
-    options.add_argument('--disable-gpu')
+      options = Options()
+      options.binary_location = "/usr/bin/google-chrome"  # Specify the Chrome binary location
+      options.add_argument('--headless')  # Run headless without opening a browser window
+      options.add_argument('--no-sandbox')  # Add this line if needed
+      options.add_argument('--disable-dev-shm-usage')  # Add this line if needed
 
     # Set up WebDriver using WebDriverManager
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
@@ -749,8 +751,10 @@ def calculate_score(business, location):
 # Scraping function to get business data from Bing and rank competitors
 def scrape_business_data_bing(industry, location):
     options = Options()
+    options.binary_location = "/usr/bin/google-chrome"  # Specify the Chrome binary location
     options.add_argument('--headless')  # Run headless without opening a browser window
-    options.add_argument('--disable-gpu')
+    options.add_argument('--no-sandbox')  # Add this line if needed
+    options.add_argument('--disable-dev-shm-usage')  # Add this line if needed
 
     # Set up WebDriver using WebDriverManager
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
@@ -924,8 +928,10 @@ def fetch_keywords(url):
 # Scraping function to get business data from Bing and rank keywords
 def gather_business_data(industry, location):
     options = Options()
+    options.binary_location = "/usr/bin/google-chrome"  # Specify the Chrome binary location
     options.add_argument('--headless')  # Run headless without opening a browser window
-    options.add_argument('--disable-gpu')
+    options.add_argument('--no-sandbox')  # Add this line if needed
+    options.add_argument('--disable-dev-shm-usage')  # Add this line if needed
 
     # Set up WebDriver using WebDriverManager
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
@@ -1024,6 +1030,7 @@ from selenium.webdriver.support import expected_conditions as EC
 # Function to initialize Selenium WebDriver with headless options
 def init_webdriver():
     chrome_options = Options()
+    chrome_options.binary_location = "/usr/bin/google-chrome"  # Specify the Chrome binary location
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
@@ -1189,6 +1196,7 @@ from selenium.webdriver.support import expected_conditions as EC
 
 def initialize_webdriver():
     chrome_options = Options()
+    chrome_options.binary_location = "/usr/bin/google-chrome"  # Specify the Chrome binary location
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
