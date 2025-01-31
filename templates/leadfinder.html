@@ -1,0 +1,128 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mx-auto px-6 py-12">
+    <!-- Main Title -->
+    <h1 class="text-center text-4xl font-bold text-orange-500 mb-8">AI Leads Finder</h1>
+
+    <!-- Form Section -->
+    <div class="max-w-4xl mx-auto p-8 bg-gray-800 border-2 border-orange-500 rounded-lg shadow-xl mb-12">
+        <h2 class="text-center text-2xl font-semibold text-gray-200 mb-8">Find the Right Customers for Your Business</h2>
+
+        <form id="discover-form" method="POST" action="{{ url_for('leadfinder') }}">
+            <!-- Industry & Region Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <div>
+                    <label for="industry" class="block text-gray-400">Industry</label>
+                    <div class="relative">
+                        <input type="text" name="industry" id="industry" class="w-full p-4 bg-gray-700 text-gray-200 border border-orange-500 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="e.g., Home Renovations" value="{{ industry }}" required>
+                        <i class="fas fa-industry absolute top-3 right-3 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="location" class="block text-gray-400">Region</label>
+                    <div class="relative">
+                        <input type="text" name="location" id="location" class="w-full p-4 bg-gray-700 text-gray-200 border border-orange-500 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-300" placeholder="e.g., San Francisco, CA" value="{{ location }}" required>
+                        <i class="fas fa-map-marker-alt absolute top-3 right-3 text-gray-400"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-center mt-8">
+                <button type="submit" id="discover-button" class="relative bg-gradient-to-r from-orange-500 to-orange-700 text-white px-8 py-4 rounded-full hover:bg-gradient-to-r hover:from-orange-600 hover:to-orange-800 focus:outline-none transition duration-300">
+                    <i class="fas fa-search mr-3"></i>
+                    <span>Find Leads</span>
+                    <div id="loader" class="absolute inset-0 flex justify-center items-center" style="display: none;">
+                        <div class="w-6 h-6 border-4 border-t-transparent border-white border-solid rounded-full animate-spin"></div>
+                    </div>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Section with Scrollable Cards -->
+    <div class="max-w-4xl mx-auto p-8 bg-gray-800 border-2 border-orange-500 rounded-lg shadow-xl mb-12">
+        <h5 class="text-center text-xl font-semibold text-gray-200 mb-6">Your Premium Buyer List</h5>
+        <hr class="border-t-2 border-orange-500 mb-6">
+
+        {% if not business_data %}
+            <p class="text-center text-gray-500">Fill out the form above to discover your ideal buyers.</p>
+        {% else %}
+            <!-- Results Cards (Scrollable) -->
+            <div class="max-h-96 overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {% for business in business_data %}
+                        <div class="bg-gray-700 p-6 rounded-lg shadow-lg hover:shadow-2xl transition duration-300 overflow-hidden">
+                            <h6 class="text-orange-500 font-bold text-lg mb-3">{{ business.name or "N/A" }}</h6>
+                            
+                            <div class="space-y-4 text-gray-300">
+                                <div class="flex items-center">
+                                    <i class="fas fa-phone-alt mr-2"></i>
+                                    <p>Phone: <span class="text-gray-100">{{ business.phone or 'None' }}</span></p>
+                                </div>
+
+                                <div class="flex items-center">
+                                    <i class="fas fa-map-marker-alt mr-2"></i>
+                                    <p>Address: <span class="text-gray-100">{{ business.address or 'None' }}</span></p>
+                                </div>
+
+                                <!-- Website Section with max-width and overflow hidden -->
+                                <div class="flex items-center">
+                                    <i class="fas fa-globe mr-2"></i>
+                                    <p>Website: 
+                                        <a href="{{ business.website }}" target="_blank" class="text-orange-500 hover:underline max-w-full truncate">
+                                            {{ business.website or 'None' }}
+                                        </a>
+                                    </p>
+                                </div>
+
+                                <!-- Social Media Links -->
+                                {% if business.social_links %}
+                                    <div class="flex items-center">
+                                        <i class="fas fa-share-alt mr-2"></i>
+                                        <p>Social Media:
+                                            {% for platform, link in business.social_links.items() %}
+                                                <a href="{{ link }}" target="_blank" class="text-blue-500 hover:underline">{{ platform.capitalize() }}</a>
+                                            {% endfor %}
+                                        </p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Handle form submission, show loader, and trigger search logic
+document.addEventListener('DOMContentLoaded', () => {
+    const loader = document.getElementById('loader');
+    const discoverForm = document.getElementById('discover-form');
+    const discoverButton = document.getElementById('discover-button');
+
+    discoverForm.addEventListener('submit', (event) => {
+        event.preventDefault();  // Prevent default form submission
+
+        const specialty = document.querySelector('input[name="industry"]').value;
+        const location = document.querySelector('input[name="location"]').value;
+
+        if (!specialty || !location) {
+            alert('Please fill in both industry and location.');
+            return;
+        }
+
+        loader.style.display = 'inline-block';  // Show loader
+        discoverButton.disabled = true;  // Disable button to prevent multiple submissions
+
+        // Now, trigger the form submission using JavaScript to pass data to the server
+        discoverForm.submit(); // Submitting the form manually will call the backend (Flask route)
+    });
+});
+</script>
+
+{% endblock %}

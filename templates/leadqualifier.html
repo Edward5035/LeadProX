@@ -1,0 +1,144 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container mx-auto px-6 py-12">
+    <!-- Main Title -->
+    <h1 class="text-center text-4xl font-bold text-orange-500 mb-8">AI Lead Qualifier</h1>
+
+    <!-- Form Section -->
+    <div class="max-w-4xl mx-auto p-8 bg-gray-800 border-2 border-orange-500 rounded-lg shadow-xl mb-12">
+        <h2 class="text-center text-2xl font-semibold text-gray-200 mb-8">Qualify Your Business Leads</h2>
+
+        <form id="qualifier-form" method="POST" action="{{ url_for('qualify_new_leads') }}" enctype="multipart/form-data">
+            <div class="space-y-8 mb-8">
+                <div>
+                    <label for="leads" class="block text-gray-400">Paste Business Data</label>
+                    <textarea id="leads" name="leads" rows="10" class="w-full p-4 bg-white text-gray-800 border border-orange-500 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-300"></textarea>
+                </div>
+                <div>
+                    <label for="file" class="block text-gray-400">Or Upload File</label>
+                    <input type="file" id="file" name="file" class="w-full p-4 bg-gray-700 text-gray-200 border border-orange-500 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-300">
+                </div>
+            </div>
+
+            <div class="flex justify-center mt-8">
+                <button type="submit" class="relative bg-gradient-to-r from-orange-500 to-orange-700 text-white px-8 py-4 rounded-full hover:bg-gradient-to-r hover:from-orange-600 hover:to-orange-800 focus:outline-none transition duration-300">
+                    <i class="fas fa-search mr-3"></i>
+                    <span>Qualify Leads</span>
+                    <div id="loader" class="absolute inset-0 flex justify-center items-center" style="display: none;">
+                        <div class="w-6 h-6 border-4 border-t-transparent border-white border-solid rounded-full animate-spin"></div>
+                    </div>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Section with Scrollable Cards -->
+    <div class="max-w-4xl mx-auto p-8 bg-gray-800 border-2 border-orange-500 rounded-lg shadow-xl mb-12 h-96">
+        <h5 class="text-center text-xl font-semibold text-gray-200 mb-6">Qualified Leads</h5>
+        <hr class="border-t-2 border-orange-500 mb-6">
+
+        <!-- Scrollable Wrapper -->
+        <div class="overflow-y-auto h-full max-h-full">
+            {% if not results %}
+                <div class="bg-gray-700 p-6 rounded-lg shadow-lg h-full flex items-center justify-center">
+                    <p class="text-center text-gray-500">Paste business data above to qualify your leads.</p>
+                </div>
+            {% else %}
+                <!-- Results Cards (Scrollable) -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {% for result in results %}
+                        <div class="bg-gradient-to-r from-gray-700 to-gray-900 p-6 rounded-lg shadow-lg hover:shadow-2xl transition duration-300 overflow-hidden">
+                            <h6 class="text-orange-500 font-bold text-lg mb-3">{{ result.company_name or "N/A" }}</h6>
+                            
+
+                            <div class="space-y-4 text-gray-300">
+                                <div class="flex items-center">
+                                    <i class="fas fa-star mr-2"></i>
+                                    <p>Score: <span class="{% if result.score > 50 %}text-green-500{% else %}text-red-500{% endif %}">{{ result.score }}</span></p>
+                                </div>
+
+                                <div class="flex items-center">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    <p>Qualification Status: <span class="{% if result.qualification_status == 'High' %}text-green-500{% else %}text-red-500{% endif %}">{{ result.qualification_status }}</span></p>
+                                </div>
+
+                                <div class="flex items-center">
+                                    <i class="fas fa-percentage mr-2"></i>
+                                    <p>Conversion Rate: <span class="text-purple-500">{{ result.conversion_rate }}%</span></p>
+                                </div>
+
+                                <div class="flex items-center">
+                                    <i class="fas fa-envelope mr-2"></i>
+                                    <p>Email: <span class="text-gray-100">{{ result.email or 'N/A' }}</span></p>
+                                </div>
+
+                                <div class="flex items-center">
+                                    <i class="fas fa-phone-alt mr-2"></i>
+                                    <p>Phone: <span class="text-gray-100">{{ result.phone or 'N/A' }}</span></p>
+                                </div>
+
+                                <div class="flex items-center">
+                                    <i class="fas fa-map-marker-alt mr-2"></i>
+                                    <p>Address: <span class="text-gray-100">{{ result.address or 'N/A' }}</span></p>
+                                </div>
+
+                                <div class="flex items-center">
+                                    <i class="fas fa-globe mr-2"></i>
+                                    <p>Social Media: <span class="text-gray-100">{{ result.social_media or 'N/A' }}</span></p>
+                                </div>
+
+                                <div class="flex items-center">
+                                    <i class="fas fa-comments mr-2"></i>
+                                    <p>AI Feedback: <span class="text-gray-100">{{ result.ai_feedback }}</span></p>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+// Handle form submission, show loader, and trigger search logic
+document.addEventListener('DOMContentLoaded', () => {
+    const loader = document.getElementById('loader');
+    const qualifierForm = document.getElementById('qualifier-form');
+    const qualifierButton = document.querySelector('button[type="submit"]');
+    const leadsTextarea = document.getElementById('leads');
+
+    // Load saved data from localStorage when the page loads
+    if (localStorage.getItem('leadsData')) {
+        leadsTextarea.value = localStorage.getItem('leadsData');
+    }
+
+    // Save the data to localStorage whenever the user types in the textarea
+    leadsTextarea.addEventListener('input', () => {
+        localStorage.setItem('leadsData', leadsTextarea.value);
+    });
+
+    // Clear textarea and localStorage when clicking anywhere outside the form, but not on the button or textarea itself
+    document.addEventListener('click', (event) => {
+        if (event.target !== qualifierButton && !qualifierButton.contains(event.target) && event.target !== leadsTextarea && !leadsTextarea.contains(event.target)) {
+            leadsTextarea.value = ''; // Clear the textarea
+            localStorage.removeItem('leadsData'); // Remove from localStorage
+        }
+    });
+
+    // Prevent the click event from bubbling when clicking inside the textarea or button
+    leadsTextarea.addEventListener('click', (event) => {
+        event.stopPropagation(); // Prevent the document click event
+    });
+
+    qualifierForm.addEventListener('submit', (event) => {
+        loader.style.display = 'inline-block';  // Show loader
+        qualifierButton.disabled = true;  // Disable button to prevent multiple submissions
+
+        // Allow form submission
+    });
+});
+</script>
+
+{% endblock %}
