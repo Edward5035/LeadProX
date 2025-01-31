@@ -349,11 +349,16 @@ from selenium.webdriver.chrome.options import Options
 
 # Scraping function to get business data
 def scrape_data(industry, location):
-      options = Options()
-      options.binary_location = "/usr/bin/google-chrome"  # Specify the Chrome binary location
-      options.add_argument('--headless')  # Run headless without opening a browser window
-      options.add_argument('--no-sandbox')  # Add this line if needed
-      options.add_argument('--disable-dev-shm-usage')  # Add this line if needed
+    options = Options()
+    # Check multiple common paths for the Chrome binary
+    possible_paths = ["/usr/bin/google-chrome", "/usr/local/bin/google-chrome"]
+    for path in possible_paths:
+        if os.path.exists(path):
+            options.binary_location = path
+            break
+    options.add_argument('--headless')  # Run headless without opening a browser window
+    options.add_argument('--no-sandbox')  # Add this line if needed
+    options.add_argument('--disable-dev-shm-usage')  # Add this line if needed
 
     # Set up WebDriver using WebDriverManager
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
@@ -449,7 +454,9 @@ def insights():
 
 
 
-# Lead Qualifier
+# Lead Qualifier---------------------------
+
+
 from flask import Flask, render_template, request, session
 import re
 import random
@@ -751,7 +758,12 @@ def calculate_score(business, location):
 # Scraping function to get business data from Bing and rank competitors
 def scrape_business_data_bing(industry, location):
     options = Options()
-    options.binary_location = "/usr/bin/google-chrome"  # Specify the Chrome binary location
+    # Check multiple common paths for the Chrome binary
+    possible_paths = ["/usr/bin/google-chrome", "/usr/local/bin/google-chrome"]
+    for path in possible_paths:
+        if os.path.exists(path):
+            options.binary_location = path
+            break
     options.add_argument('--headless')  # Run headless without opening a browser window
     options.add_argument('--no-sandbox')  # Add this line if needed
     options.add_argument('--disable-dev-shm-usage')  # Add this line if needed
@@ -928,7 +940,12 @@ def fetch_keywords(url):
 # Scraping function to get business data from Bing and rank keywords
 def gather_business_data(industry, location):
     options = Options()
-    options.binary_location = "/usr/bin/google-chrome"  # Specify the Chrome binary location
+    # Check multiple common paths for the Chrome binary
+    possible_paths = ["/usr/bin/google-chrome", "/usr/local/bin/google-chrome"]
+    for path in possible_paths:
+        if os.path.exists(path):
+            options.binary_location = path
+            break
     options.add_argument('--headless')  # Run headless without opening a browser window
     options.add_argument('--no-sandbox')  # Add this line if needed
     options.add_argument('--disable-dev-shm-usage')  # Add this line if needed
@@ -1029,13 +1046,16 @@ from selenium.webdriver.support import expected_conditions as EC
 
 # Function to initialize Selenium WebDriver with headless options
 def init_webdriver():
-    chrome_options = Options()
-    chrome_options.binary_location = "/usr/bin/google-chrome"  # Specify the Chrome binary location
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    return webdriver.Chrome(options=chrome_options)
+    options = Options()
+    # Check multiple common paths for the Chrome binary
+    possible_paths = ["/usr/bin/google-chrome", "/usr/local/bin/google-chrome"]
+    for path in possible_paths:
+        if os.path.exists(path):
+            options.binary_location = path
+            break
+    options.add_argument('--headless')  # Run headless without opening a browser window
+    options.add_argument('--no-sandbox')  # Add this line if needed
+    options.add_argument('--disable-dev-shm-usage')  # Add this line if needed
 
 # Function to scrape Bing search results using Selenium WebDriver
 def scrape_bing_search(query):
@@ -1195,13 +1215,16 @@ from selenium.webdriver.support import expected_conditions as EC
 
 
 def initialize_webdriver():
-    chrome_options = Options()
-    chrome_options.binary_location = "/usr/bin/google-chrome"  # Specify the Chrome binary location
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    return webdriver.Chrome(options=chrome_options)
+    options = Options()
+    # Check multiple common paths for the Chrome binary
+    possible_paths = ["/usr/bin/google-chrome", "/usr/local/bin/google-chrome"]
+    for path in possible_paths:
+        if os.path.exists(path):
+            options.binary_location = path
+            break
+    options.add_argument('--headless')  # Run headless without opening a browser window
+    options.add_argument('--no-sandbox')  # Add this line if needed
+    options.add_argument('--disable-dev-shm-usage')  # Add this line if needed
 
 def bing_search(query):
     driver = initialize_webdriver()
