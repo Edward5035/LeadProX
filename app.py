@@ -349,11 +349,11 @@ from selenium.webdriver.chrome.options import Options
 
 # Scraping function to get business data
 def scrape_data(industry, location):
-      options = Options()
-      options.binary_location = "/usr/bin/google-chrome"  # Specify the Chrome binary location
-      options.add_argument('--headless')  # Run headless without opening a browser window
-      options.add_argument('--no-sandbox')  # Add this line if needed
-      options.add_argument('--disable-dev-shm-usage')  # Add this line if needed
+    options = Options()
+    options.binary_location = "/usr/bin/google-chrome"  # Specify the Chrome binary location
+    options.add_argument('--headless')  # Run headless without opening a browser window
+    options.add_argument('--no-sandbox')  # Add this line if needed
+    options.add_argument('--disable-dev-shm-usage')  # Add this line if needed
 
     # Set up WebDriver using WebDriverManager
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
