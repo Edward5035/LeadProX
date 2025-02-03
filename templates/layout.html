@@ -190,17 +190,18 @@
         <!-- Sidebar items to ensure consistent vertical alignment -->
         <a href="{{ url_for('dashboard') }}" class="sidebar-item">
             <i class="fas fa-columns"></i> <span>Quick Overview</span>
-        </a>
-              <a href="{{ url_for('leadfinder') }}" class="sidebar-item">
-            <i class="fas fa-plug"></i> <span>AI Lead Finder</span>
-        </a>
-      
-   <a href="{{ url_for('qualify_new_leads') }}" class="sidebar-item">
-    <i class="fas fa-plug"></i> <span>AI Lead Qualifier</span>
+      <a href="{{ url_for('leadfinder') }}" class="sidebar-item">
+  <i class="fas fa-search"></i> <span>AI Lead Finder</span>
 </a>
-  <a href="{{ url_for('validate_leads') }}" class="sidebar-item">
-    <i class="fas fa-plug"></i> <span>Lead Validation</span>
-</a>      
+
+<a href="{{ url_for('qualify_new_leads') }}" class="sidebar-item">
+  <i class="fas fa-check-circle"></i> <span>AI Lead Qualifier</span>
+</a>
+
+<a href="{{ url_for('validate_leads') }}" class="sidebar-item">
+  <i class="fas fa-clipboard-check"></i> <span>Lead Validation</span>
+</a>
+
       <a href="{{ url_for('competitor_analysis') }}" class="sidebar-item">
     <i class="fas fa-chart-line"></i> <span>Competitor Spy</span>
 </a>

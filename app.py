@@ -412,6 +412,7 @@ def scrape_data(industry, location):
 
 # Flask route for displaying the form and results
 @app.route('/leadfinder', methods=['GET', 'POST'])
+@login_required
 def leadfinder():
     industry = ''
     location = ''
@@ -516,6 +517,7 @@ def parse_lead_data(leads_text):
     return leads
 
 @app.route('/qualify_new_leads', methods=['GET', 'POST'])
+@login_required
 def qualify_new_leads():
     results = []
 
@@ -618,6 +620,7 @@ def parse_lead_data(leads_text):
     return leads
 
 @app.route('/validate_leads', methods=['GET', 'POST'])
+@login_required
 def validate_leads():
     validation_results = []
 
@@ -801,6 +804,7 @@ def business_finder():
     return render_template('businessfinder.html', business_data=business_data, industry=industry, location=location)
 
 @app.route('/competitor_analysis', methods=['GET', 'POST'])
+@login_required
 def competitor_analysis():
     industry = ''
     location = ''
@@ -946,6 +950,7 @@ def gather_business_data(industry, location, max_pages=5):
 
 # Flask route for SEO Rocket interface
 @app.route('/seorocket', methods=['GET', 'POST'])
+@login_required
 def seorocket():
     industry = ''
     location = ''
@@ -1113,6 +1118,7 @@ def extract_contact_info(url):
 
 # Flask route for contact finder page
 @app.route('/contactfinder', methods=['GET', 'POST'])
+@login_required
 def contact_finder():
     if request.method == 'POST':
         industry = request.form.get('industry')
@@ -1257,6 +1263,7 @@ def get_contact_info(url):
     return {"company_name": company_name, "social_media_links": social_media_links}
 
 @app.route('/socialinsights', methods=['GET', 'POST'])
+@login_required
 def social_insights():
     if request.method == 'POST':
         industry = request.form.get('industry')
