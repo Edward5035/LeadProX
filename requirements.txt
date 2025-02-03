@@ -42,5 +42,6 @@ websocket-client==1.8.0
 Werkzeug==3.0.3
 wsproto==1.2.0
 yarl==1.9.4
+fake_useragent
 gunicorn
 

@@ -1,88 +1,122 @@
 
+import requests
+import random
 import time
-from flask import Flask, render_template
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
+from fake_useragent import UserAgent
+from bs4 import BeautifulSoup
+from collections import Counter
+from flask import Flask, render_template, request
+
+# Initialize Flask
 
 
+# Create a random user agent for each request
+user_agents = UserAgent()
 
-# Scraping function to get business data
-def scrape_data(industry, location):
-    options = Options()
-    options.add_argument('--headless')  # Run headless without opening a browser window
-    options.add_argument('--disable-gpu')
+# Create a persistent session to simulate real user behavior using `requests.Session()`
+http_session = requests.Session()
 
-    # Set up WebDriver using WebDriverManager
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    
-    # Open Yellow Pages website
-    url = 'https://www.yellowpages.com/'
-    driver.get(url)
-    time.sleep(3)
+# Define stopwords directly (reusing your original stopwords)
+stop_words = set([
+    'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves',
+    'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their',
+    'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'was',
+    'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the',
+    'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against',
+    'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in',
+    'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why',
+    'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not', 'only',
+    'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now'
+])
 
-    # Find the search bar and input the industry (business type)
-    search_box = driver.find_element(By.NAME, "search_terms")
-    search_box.send_keys(industry)
+# Function to perform HTTP request with random headers using `requests.Session()`
+def perform_http_request(url):
+    headers = {
+        "User-Agent": user_agents.random,  # Randomize User-Agent
+        "Accept-Language": random.choice(["en-US", "en-GB", "en-CA"]),
+        "Connection": "keep-alive",
+        "DNT": "1",  # Do Not Track header
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+    }
 
-    # Find the location input field and enter the location
-    location_box = driver.find_element(By.NAME, "geo_location_terms")
-    location_box.clear()
-    location_box.send_keys(location)
+    # Add a random delay between requests to simulate human-like behavior
+    time.sleep(random.uniform(2, 10))  # Simulate human-like delay (2 to 10 seconds)
 
-    # Press Enter to initiate the search
-    search_box.send_keys(Keys.RETURN)
-    time.sleep(3)
+    try:
+        # Use `http_session` to make the GET request, not Flask's session
+        response = http_session.get(url, headers=headers, timeout=10)
+        response.raise_for_status()  # Will raise an error for bad status codes
+        return response.text
+    except requests.exceptions.RequestException as e:
+        print(f"Error during request to {url}: {e}")
+        return None
 
-    # Extract the list of results
-    business_list = driver.find_elements(By.CSS_SELECTOR, '.info')
+# Function to extract keywords from the homepage
+def fetch_keywords(url):
+    page_content = perform_http_request(url)
+    if not page_content:
+        return []
 
-    # List to hold the scraped business data
+    soup = BeautifulSoup(page_content, 'html.parser')
+    text = soup.get_text()
+
+    # Tokenize text and remove stopwords
+    words = re.findall(r'\b\w+\b', text.lower())
+    keywords = [word for word in words if word.isalnum() and word not in stop_words]
+
+    # Get keyword frequency
+    keyword_freq = Counter(keywords)
+    ranked_keywords = keyword_freq.most_common()
+
+    return ranked_keywords
+
+# Function to gather business data and handle pagination
+def gather_business_data(industry, location, max_pages=5):
+    query = f"{industry} in {location}"
+    base_url = f"https://www.bing.com/search?q={query}&first="
+
     scraped_data = []
 
-    # Loop through each business and extract data
-    for business in business_list:
-        name = business.find_element(By.CSS_SELECTOR, '.business-name').text
-        phone = business.find_element(By.CSS_SELECTOR, '.phone').text if business.find_elements(By.CSS_SELECTOR, '.phone') else "N/A"
-        address = business.find_element(By.CSS_SELECTOR, '.street-address').text if business.find_elements(By.CSS_SELECTOR, '.street-address') else "N/A"
-        website = business.find_element(By.CSS_SELECTOR, '.links a').get_attribute('href') if business.find_elements(By.CSS_SELECTOR, '.links a') else "N/A"
+    for page_num in range(max_pages):
+        url = f"{base_url}{page_num * 10 + 1}"  # Adjust the page number for pagination
+        print(f"Scraping page {page_num + 1}: {url}")
         
-        # Social media links (Facebook, Twitter, Instagram, etc.)
-        social_links = {}
-        social_elements = business.find_elements(By.CSS_SELECTOR, '.social-icons a')
-        
-        for social in social_elements:
-            url = social.get_attribute('href')
-            if "facebook" in url:
-                social_links['facebook'] = url
-            elif "twitter" in url:
-                social_links['twitter'] = url
-            elif "instagram" in url:
-                social_links['instagram'] = url
-            elif "linkedin" in url:
-                social_links['linkedin'] = url
-            # You can add more conditions for other social media platforms if needed
+        page_content = perform_http_request(url)
+        if not page_content:
+            break
 
-        # Append the extracted data to the list
-        scraped_data.append({
-            "name": name,
-            "phone": phone,
-            "address": address,
-            "website": website,
-            "social_links": social_links
-        })
+        soup = BeautifulSoup(page_content, 'html.parser')
 
-    # Close the driver
-    driver.quit()
-    
+        # Extract the business listings
+        business_list = soup.select('.b_algo')
+
+        for business in business_list:
+            name = business.find('h2').text
+            website = business.find('a')['href'] if business.find('a') else "N/A"
+
+            # Skip if no valid website
+            if website == "N/A":
+                continue
+
+            # Extract and rank keywords from the homepage
+            keywords = fetch_keywords(website)
+
+            # Calculate keyword percentages
+            total_keywords = sum([freq for _, freq in keywords])
+            keyword_percentages = [(keyword, freq / total_keywords * 100) for keyword, freq in keywords]
+
+            # Append the extracted data
+            scraped_data.append({
+                "name": name,
+                "website": website,
+                "keywords": keyword_percentages
+            })
+
     return scraped_data
 
-
-@app.route('/leadfinder', methods=['GET', 'POST'])
-def leadfinder():
+# Flask route for SEO Rocket interface
+@app.route('/seorocket', methods=['GET', 'POST'])
+def seorocket():
     industry = ''
     location = ''
     business_data = []
@@ -94,12 +128,25 @@ def leadfinder():
         
         # Ensure that the industry and location are not empty before scraping
         if industry and location:
-            business_data = scrape_data(industry, location)
+            business_data = gather_business_data(industry, location)
         else:
             business_data = []  # No data to scrape if either is empty
 
+    # Split keywords into short-tail and long-tail keywords
+    short_tail = []
+    long_tail = []
+    keyword_percentages = {}
+
+    if business_data:
+        for business in business_data:
+            for keyword, percentage in business['keywords']:
+                keyword_percentages[keyword] = percentage
+                if len(keyword.split()) <= 2:  # Short-tail if 1-2 words
+                    short_tail.append(keyword)
+                else:
+                    long_tail.append(keyword)
+                    print(f"Identified long-tail keyword: {keyword}")  # Debugging print
+
     # Render the template with the scraped data
-    return render_template('leadfinder.html', business_data=business_data, industry=industry, location=location)
-
-
+    return render_template('seorocket.html', business_data=business_data, industry=industry, location=location, keyword_percentages=keyword_percentages, short_tail=short_tail, long_tail=long_tail)
 

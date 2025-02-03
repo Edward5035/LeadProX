@@ -337,86 +337,80 @@ def social_scout():
 
 
 # AI LEADFINDER
-import time
+import requests
+from bs4 import BeautifulSoup
 from flask import Flask, render_template, request, session
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
+import random
+import time
 
+# Create Flask app
 
-# Scraping function to get business data
+# Function to get a random user agent
+def get_random_user_agent():
+    user_agents = [
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
+        "Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0",
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:60.0) Gecko/20100101 Firefox/60.0",
+        # Add more user agents if needed
+    ]
+    return random.choice(user_agents)
+
+# Scrape data from Yellow Pages
 def scrape_data(industry, location):
-    options = Options()
-    options.add_argument('--headless')  # Run headless without opening a browser window
-    options.add_argument('--disable-gpu')
+    headers = {
+        'User-Agent': get_random_user_agent(),
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
+        'Connection': 'keep-alive'
+    }
+    url = f'https://www.yellowpages.com/search?search_terms={industry}&geo_location_terms={location}'
 
-    # Set up WebDriver using WebDriverManager
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    
-    # Open Yellow Pages website
-    url = 'https://www.yellowpages.com/'
-    driver.get(url)
-    time.sleep(3)
+    # Make the request with headers and random sleep
+    response = requests.get(url, headers=headers)
+    time.sleep(random.uniform(1, 3))  # Random sleep to avoid detection
 
-    # Find the search bar and input the industry (business type)
-    search_box = driver.find_element(By.NAME, "search_terms")
-    search_box.send_keys(industry)
+    if response.status_code == 200:
+        soup = BeautifulSoup(response.content, 'html.parser')
+        business_list = soup.select('.info')
 
-    # Find the location input field and enter the location
-    location_box = driver.find_element(By.NAME, "geo_location_terms")
-    location_box.clear()
-    location_box.send_keys(location)
+        scraped_data = []
 
-    # Press Enter to initiate the search
-    search_box.send_keys(Keys.RETURN)
-    time.sleep(3)
+        for business in business_list:
+            name = business.select_one('.business-name').get_text(strip=True) if business.select_one('.business-name') else "N/A"
+            phone = business.select_one('.phones.phone.primary').get_text(strip=True) if business.select_one('.phones.phone.primary') else "N/A"
+            address = business.select_one('.street-address').get_text(strip=True) if business.select_one('.street-address') else "N/A"
+            website = business.select_one('.links a')['href'] if business.select_one('.links a') else "N/A"
 
-    # Extract the list of results
-    business_list = driver.find_elements(By.CSS_SELECTOR, '.info')
+            # Social media links
+            social_links = {}
+            social_elements = business.select('.social-icons a')
 
-    # List to hold the scraped business data
-    scraped_data = []
+            for social in social_elements:
+                url = social['href']
+                if "facebook" in url:
+                    social_links['facebook'] = url
+                elif "twitter" in url:
+                    social_links['twitter'] = url
+                elif "instagram" in url:
+                    social_links['instagram'] = url
+                elif "linkedin" in url:
+                    social_links['linkedin'] = url
 
-    # Loop through each business and extract data
-    for business in business_list:
-        name = business.find_element(By.CSS_SELECTOR, '.business-name').text
-        phone = business.find_element(By.CSS_SELECTOR, '.phone').text if business.find_elements(By.CSS_SELECTOR, '.phone') else "N/A"
-        address = business.find_element(By.CSS_SELECTOR, '.street-address').text if business.find_elements(By.CSS_SELECTOR, '.street-address') else "N/A"
-        website = business.find_element(By.CSS_SELECTOR, '.links a').get_attribute('href') if business.find_elements(By.CSS_SELECTOR, '.links a') else "N/A"
-        
-        # Social media links (Facebook, Twitter, Instagram, etc.)
-        social_links = {}
-        social_elements = business.find_elements(By.CSS_SELECTOR, '.social-icons a')
-        
-        for social in social_elements:
-            url = social.get_attribute('href')
-            if "facebook" in url:
-                social_links['facebook'] = url
-            elif "twitter" in url:
-                social_links['twitter'] = url
-            elif "instagram" in url:
-                social_links['instagram'] = url
-            elif "linkedin" in url:
-                social_links['linkedin'] = url
-            # You can add more conditions for other social media platforms if needed
+            # Append the extracted data to the list
+            scraped_data.append({
+                "name": name,
+                "phone": phone,
+                "address": address,
+                "website": website,
+                "social_links": social_links
+            })
 
-        # Append the extracted data to the list
-        scraped_data.append({
-            "name": name,
-            "phone": phone,
-            "address": address,
-            "website": website,
-            "social_links": social_links
-        })
+        return scraped_data
+    else:
+        return []
 
-    # Close the driver
-    driver.quit()
-    
-    return scraped_data
-
+# Flask route for displaying the form and results
 @app.route('/leadfinder', methods=['GET', 'POST'])
 def leadfinder():
     industry = ''
@@ -427,23 +421,22 @@ def leadfinder():
         # Get the input data from the form
         industry = request.form['industry']
         location = request.form['location']
-        
+
         # Ensure that the industry and location are not empty before scraping
         if industry and location:
             business_data = scrape_data(industry, location)
-
-            # Store the count of business names in session
-            session['business_name_count'] = len(business_data)
+            session['business_name_count'] = len(business_data)  # Store the count of business names
         else:
             business_data = []  # No data to scrape if either is empty
 
-    # Render the template with the scraped data
     return render_template('leadfinder.html', business_data=business_data, industry=industry, location=location)
 
+# Flask route for insights
 @app.route('/insights')
 def insights():
-    return render_template('dashboard.html', 
-                           business_name_count=session.get('business_name_count', 0))
+    return render_template('dashboard.html', business_name_count=session.get('business_name_count', 0))
+
+
 
 
 
@@ -656,40 +649,36 @@ def validate_leads():
 
 
 #COMPETITOR ANALYSIS----------------------
+
 import re
 import time
-from flask import Flask, render_template, request
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from bs4 import BeautifulSoup
-import requests
 import random
+import requests
+from flask import Flask, render_template, request
+from bs4 import BeautifulSoup
+from fake_useragent import UserAgent
 
-# List of user agents for rotation
-user_agents = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
-    "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0"
-]
+# Initialize Flask app
 
-# List of keywords to exclude directory-style and large global websites
+
+
+# Create an instance of fake user agent to dynamically generate user agents
+user_agents = UserAgent()
+
+# Define keywords to exclude directory-style and large global websites
 exclude_keywords = [
     "directory", "listing", "top", "best", "guide", "reviews", "wiki", "global", "international",
     "yelp", "tripadvisor", "yellowpages", "linkedin", "facebook", "twitter"
 ]
 
-# Function to perform a request with retries and rotating user agents
+# Function to perform an HTTP request with rotating user agents and unique headers
 def perform_request(url):
     headers = {
-        "User-Agent": random.choice(user_agents),
-        "Accept-Language": "en-US,en;q=0.5",
-        "Connection": "keep-alive",
-        "DNT": "1",  # Do Not Track Request Header
+        "User-Agent": user_agents.random,  # Randomized user agent each time
+        "Accept-Language": random.choice(["en-US", "en-GB", "en-CA"]),
+        "Connection": random.choice(["keep-alive", "close"]),  # Random connection type
+        "DNT": "1",  # Do Not Track header
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"  # Different Accept header
     }
 
     session = requests.Session()
@@ -697,6 +686,9 @@ def perform_request(url):
     adapter = requests.adapters.HTTPAdapter(max_retries=retry_strategy)
     session.mount("https://", adapter)
     session.mount("http://", adapter)
+
+    # Add random delay to mimic human browsing behavior
+    time.sleep(random.uniform(1, 4))  # Varying delay between 1 and 4 seconds
 
     try:
         response = session.get(url, headers=headers, timeout=10)
@@ -706,7 +698,7 @@ def perform_request(url):
         print(f"Error during request to {url}: {e}")
         return None
 
-# Function to extract meta description
+# Function to extract meta description from the website
 def extract_meta_description(url):
     description = "N/A"
     page_content = perform_request(url)
@@ -719,7 +711,7 @@ def extract_meta_description(url):
             description = "Description not available"
     return description
 
-# Function to calculate score for each competitor
+# Function to calculate score for each competitor based on defined criteria
 def calculate_score(business, location):
     score = 0
 
@@ -746,50 +738,43 @@ def calculate_score(business, location):
 
     return score
 
-# Scraping function to get business data from Bing and rank competitors
-def scrape_business_data_bing(industry, location):
-    options = Options()
-    options.add_argument('--headless')  # Run headless without opening a browser window
-    options.add_argument('--disable-gpu')
-
-    # Set up WebDriver using WebDriverManager
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    
-    # Open Bing and perform a search
+# Function to scrape business data from Bing search results and rank competitors
+def scrape_business_data_bing(industry, location, max_pages=3):
     query = f"{industry} in {location}"
-    url = f"https://www.bing.com/search?q={query}"
-    driver.get(url)
-    time.sleep(3)
+    base_url = f"https://www.bing.com/search?q={query}&first="
 
-    # Extract the list of results
-    business_list = driver.find_elements(By.CSS_SELECTOR, '.b_algo')
-
-    # List to hold the scraped business data
     scraped_data = []
 
-    # Loop through each business and extract data
-    for business in business_list:
-        name = business.find_element(By.CSS_SELECTOR, 'h2').text
-        website = business.find_element(By.CSS_SELECTOR, 'h2 a').get_attribute('href') if business.find_elements(By.CSS_SELECTOR, 'h2 a') else "N/A"
+    for page_num in range(max_pages):
+        url = f"{base_url}{page_num * 10 + 1}"  # Adjust for pagination
+        print(f"Scraping page {page_num + 1}: {url}")
         
-        # Filter out directory-style and large global websites
-        if any(keyword in website.lower() for keyword in exclude_keywords):
-            continue
+        page_content = perform_request(url)
+        if not page_content:
+            break
 
-        # Extract meta description as services
-        services = extract_meta_description(website) if website != "N/A" else "N/A"
+        soup = BeautifulSoup(page_content, 'html.parser')
+        business_list = soup.select('.b_algo')
 
-        # Append the extracted data to the list
-        scraped_data.append({
-            "name": name,
-            "website": website,
-            "services": services,
-        })
+        for business in business_list:
+            name = business.find('h2').text
+            website = business.find('a')['href'] if business.find('a') else "N/A"
 
-    # Close the driver
-    driver.quit()
+            # Skip directory-style and global websites
+            if any(keyword in website.lower() for keyword in exclude_keywords):
+                continue
 
-    # Calculate scores and sort the businesses by score
+            # Extract meta description or services
+            services = extract_meta_description(website) if website != "N/A" else "N/A"
+
+            # Append extracted business data
+            scraped_data.append({
+                "name": name,
+                "website": website,
+                "services": services,
+            })
+
+    # Calculate scores for each business and rank them by score
     for business in scraped_data:
         business['score'] = calculate_score(business, location)
 
@@ -797,8 +782,7 @@ def scrape_business_data_bing(industry, location):
     
     return scraped_data
 
-
-
+# Flask routes to display scraped business data and competitor analysis
 @app.route('/businessfinder', methods=['GET', 'POST'])
 def business_finder():
     industry = ''
@@ -806,17 +790,14 @@ def business_finder():
     business_data = []
 
     if request.method == 'POST':
-        # Get the input data from the form
         industry = request.form['industry']
         location = request.form['location']
         
-        # Ensure that the industry and location are not empty before scraping
         if industry and location:
             business_data = scrape_business_data_bing(industry, location)
         else:
-            business_data = []  # No data to scrape if either is empty
+            business_data = []
 
-    # Render the template with the scraped data
     return render_template('businessfinder.html', business_data=business_data, industry=industry, location=location)
 
 @app.route('/competitor_analysis', methods=['GET', 'POST'])
@@ -826,39 +807,36 @@ def competitor_analysis():
     business_data = []
 
     if request.method == 'POST':
-        # Get the input data from the form
         industry = request.form['industry']
         location = request.form['location']
         
-        # Ensure that the industry and location are not empty before scraping
         if industry and location:
             business_data = scrape_business_data_bing(industry, location)
         else:
-            business_data = []  # No data to scrape if either is empty
+            business_data = []
 
-    # Render the template with the scraped data
     return render_template('competitoranalysis.html', business_data=business_data, industry=industry, location=location)
+
 
 
 # SEO BOOST---------------------------
 
-import re
-import time
-from flask import Flask, render_template, request
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.chrome.options import Options
-from bs4 import BeautifulSoup
-import requests
+
 import random
+import time
+import requests
+from fake_useragent import UserAgent
+from bs4 import BeautifulSoup
 from collections import Counter
+from flask import Flask, render_template, request
+
+# Initialize Flask
 
 
+# Create a random user agent for each request
+user_agents = UserAgent()
 
-# Define stopwords directly
+# Define stopwords directly (reusing your original stopwords)
 stop_words = set([
     'i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves',
     'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their',
@@ -871,105 +849,102 @@ stop_words = set([
     'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now'
 ])
 
-# List of user agents for rotation
-user_agents = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:89.0) Gecko/20100101 Firefox/89.0",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.114 Safari/537.36",
-    "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:89.0) Gecko/20100101 Firefox/89.0"
-]
-
-# Function to perform a request with retries and rotating user agents
+# Function to perform HTTP request with randomized headers using `requests`
 def perform_http_request(url):
     headers = {
-        "User-Agent": random.choice(user_agents),
-        "Accept-Language": "en-US,en;q=0.5",
+        "User-Agent": user_agents.random,  # Randomize User-Agent
+        "Accept-Language": random.choice(["en-US", "en-GB", "en-CA"]),
         "Connection": "keep-alive",
-        "DNT": "1",  # Do Not Track Request Header
+        "DNT": "1",  # Do Not Track header
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
     }
 
-    session = requests.Session()
-    retry_strategy = requests.adapters.Retry(total=3, backoff_factor=1)
-    adapter = requests.adapters.HTTPAdapter(max_retries=retry_strategy)
-    session.mount("https://", adapter)
-    session.mount("http://", adapter)
+    # Add a short random delay between requests to simulate human-like browsing behavior
+    time.sleep(random.uniform(1, 3))  # Random delay between 1 and 3 seconds
 
     try:
-        response = session.get(url, headers=headers, timeout=10)
-        response.raise_for_status()
+        response = requests.get(url, headers=headers, timeout=10)
+        response.raise_for_status()  # Will raise an error for bad status codes
         return response.text
     except requests.exceptions.RequestException as e:
         print(f"Error during request to {url}: {e}")
         return None
 
-# Function to extract keywords from the homepage
+# Function to extract keywords efficiently by focusing on titles, meta descriptions, and first paragraphs
 def fetch_keywords(url):
     page_content = perform_http_request(url)
     if not page_content:
         return []
 
     soup = BeautifulSoup(page_content, 'html.parser')
-    text = soup.get_text()
+
+    # Extract relevant sections: title, meta description, and first few paragraphs
+    title = soup.title.string if soup.title else ""
+    meta_desc = soup.find('meta', attrs={'name': 'description'})
+    meta_desc_content = meta_desc['content'] if meta_desc else ""
+    paragraphs = soup.find_all('p')
     
+    # We'll grab text from the first 2-3 paragraphs only for efficiency
+    paragraph_text = " ".join([p.get_text() for p in paragraphs[:3]])
+
+    # Combine these sections to extract keywords more efficiently
+    text = title + " " + meta_desc_content + " " + paragraph_text
+
     # Tokenize text and remove stopwords
     words = re.findall(r'\b\w+\b', text.lower())
     keywords = [word for word in words if word.isalnum() and word not in stop_words]
-    
+
     # Get keyword frequency
     keyword_freq = Counter(keywords)
     ranked_keywords = keyword_freq.most_common()
-    
+
     return ranked_keywords
 
-# Scraping function to get business data from Bing and rank keywords
-def gather_business_data(industry, location):
-    options = Options()
-    options.add_argument('--headless')  # Run headless without opening a browser window
-    options.add_argument('--disable-gpu')
-
-    # Set up WebDriver using WebDriverManager
-    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
-    
-    # Open Bing and perform a search
+# Function to gather business data and extract keywords
+def gather_business_data(industry, location, max_pages=5):
     query = f"{industry} in {location}"
-    url = f"https://www.bing.com/search?q={query}"
-    driver.get(url)
-    time.sleep(3)
+    base_url = f"https://www.bing.com/search?q={query}&first="
 
-    # Extract the list of results
-    business_list = driver.find_elements(By.CSS_SELECTOR, '.b_algo')
-
-    # List to hold the scraped business data
     scraped_data = []
 
-    # Loop through each business and extract data
-    for business in business_list:
-        name = business.find_element(By.CSS_SELECTOR, 'h2').text
-        website = business.find_element(By.CSS_SELECTOR, 'h2 a').get_attribute('href') if business.find_elements(By.CSS_SELECTOR, 'h2 a') else "N/A"
+    for page_num in range(max_pages):
+        url = f"{base_url}{page_num * 10 + 1}"  # Adjust the page number for pagination
+        print(f"Scraping page {page_num + 1}: {url}")
         
-        # Skip if no valid website
-        if website == "N/A":
-            continue
+        page_content = perform_http_request(url)
+        if not page_content:
+            break
 
-        # Extract and rank keywords from the homepage
-        keywords = fetch_keywords(website)
+        soup = BeautifulSoup(page_content, 'html.parser')
 
-        # Calculate keyword percentages
-        total_keywords = sum([freq for _, freq in keywords])
-        keyword_percentages = [(keyword, freq / total_keywords * 100) for keyword, freq in keywords]
+        # Extract the business listings
+        business_list = soup.select('.b_algo')
 
-        # Append the extracted data to the list
-        scraped_data.append({
-            "name": name,
-            "website": website,
-            "keywords": keyword_percentages
-        })
+        for business in business_list:
+            name = business.find('h2').text
+            website = business.find('a')['href'] if business.find('a') else "N/A"
 
-    # Close the driver
-    driver.quit()
-    
+            # Skip if no valid website
+            if website == "N/A":
+                continue
+
+            # Extract and rank keywords from the homepage
+            keywords = fetch_keywords(website)
+
+            # Calculate keyword percentages
+            total_keywords = sum([freq for _, freq in keywords])
+            keyword_percentages = [(keyword, freq / total_keywords * 100) for keyword, freq in keywords]
+
+            # Append the extracted data
+            scraped_data.append({
+                "name": name,
+                "website": website,
+                "keywords": keyword_percentages
+            })
+
     return scraped_data
 
+# Flask route for SEO Rocket interface
 @app.route('/seorocket', methods=['GET', 'POST'])
 def seorocket():
     industry = ''
@@ -1007,40 +982,67 @@ def seorocket():
 
 
 
+
+
 # CONTACT FINDER--------------------------------------
+
+import random
+import time
 import requests
 from bs4 import BeautifulSoup
-import re
 from urllib.parse import urlparse
 from flask import Flask, render_template, request, redirect, url_for, session
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from fake_useragent import UserAgent
+
+# Initialize Flask app
 
 
+# Create a user-agent manager instance for dynamic user-agent rotation
+user_agents = UserAgent()
 
-# Function to initialize Selenium WebDriver with headless options
-def init_webdriver():
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    return webdriver.Chrome(options=chrome_options)
+# Function to generate random headers and simulate human-like browsing
+def get_random_headers():
+    headers = {
+        "User-Agent": user_agents.random,  # Randomized user agent from fake_useragent
+        "Accept-Language": random.choice(["en-US", "en-GB", "en-CA"]),  # Randomize language
+        "Connection": "keep-alive",  # Mimic human-like persistent connection
+        "DNT": "1",  # Do Not Track
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Referer": "https://www.google.com",  # Randomized referer to simulate the flow of a human browsing
+        "Upgrade-Insecure-Requests": "1",  # Simulate insecure request upgrade
+    }
+    return headers
 
-# Function to scrape Bing search results using Selenium WebDriver
-def scrape_bing_search(query):
-    driver = init_webdriver()
-    search_url = f"https://www.bing.com/search?q={query}"
-    
+# Function to perform the HTTP request with retry logic, randomized delays, and headers
+def perform_http_request(url):
+    headers = get_random_headers()
+
+    session = requests.Session()
+    retry_strategy = requests.adapters.Retry(total=3, backoff_factor=1)
+    adapter = requests.adapters.HTTPAdapter(max_retries=retry_strategy)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+
+    # Random sleep between 2-5 seconds before each request
+    time.sleep(random.uniform(2, 5))
+
     try:
-        driver.get(search_url)
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'b_algo')))
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-    finally:
-        driver.quit()
+        response = session.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        return response.text
+    except requests.exceptions.RequestException as e:
+        print(f"Error during request to {url}: {e}")
+        return None
+
+# Function to scrape Bing search results using requests and BeautifulSoup
+def scrape_bing_results(query):
+    search_url = f"https://www.bing.com/search?q={query}"
+    page_content = perform_http_request(search_url)
+
+    if not page_content:
+        return []
+
+    soup = BeautifulSoup(page_content, 'html.parser')
 
     results = []
 
@@ -1050,6 +1052,7 @@ def scrape_bing_search(query):
         domain = urlparse(link).netloc
         description = result.find('p').get_text() if result.find('p') else 'No description'
 
+        # Filter out "best", "directory", "list" keywords and trusted domains
         if "best" not in title.lower() and "directory" not in title.lower() and "list" not in title.lower():
             if "yelp.com" not in domain and "tripadvisor.com" not in domain:
                 results.append({
@@ -1061,81 +1064,65 @@ def scrape_bing_search(query):
 
     return results
 
-# Function to check if a URL is valid
+# Function to validate URLs
 def is_valid_url(url):
     parsed_url = urlparse(url)
     return parsed_url.scheme in ("http", "https")
 
-# Function to extract contact information
+# Function to extract contact information (emails, phone, etc.) from a given URL
 def extract_contact_info(url):
     if not is_valid_url(url):
         return {"error": "Invalid URL"}
 
-    driver = init_webdriver()
-    
-    try:
-        driver.get(url)
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-    except selenium.common.exceptions.WebDriverException as e:
-        if "unsupported protocol" in str(e):
-            return {"error": "Unsupported protocol in URL"}
-        else:
-            raise
-    finally:
-        driver.quit()
+    page_content = perform_http_request(url)
+    if not page_content:
+        return {"error": "Unable to fetch page"}
 
-    # Extract emails
+    soup = BeautifulSoup(page_content, 'html.parser')
+
+    # Regular expressions for extracting emails and phone numbers
     email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
-    emails = re.findall(email_pattern, soup.get_text())
-
-    # Extract phone numbers
     phone_pattern = r'\+?[0-9.\-\(\) ]{7,}'
+    social_media_domains = ["twitter.com", "facebook.com", "linkedin.com", "instagram.com"]
+
+    emails = re.findall(email_pattern, soup.get_text())
     phone_numbers = re.findall(phone_pattern, soup.get_text())
     
-    # Extract social media links using BeautifulSoup and additional patterns
-    social_media_domains = ["twitter.com", "facebook.com", "linkedin.com", "instagram.com"]
+    # Extract social media links
     social_media_links = []
-
     for link in soup.find_all('a', href=True):
         href = link['href']
         if any(domain in href for domain in social_media_domains):
             social_media_links.append(href)
 
-    # Check meta tags for social media links
-    meta_tags = soup.find_all('meta', attrs={'property': 'og:url'})
-    for tag in meta_tags:
-        content = tag.get('content', '')
-        if any(domain in content for domain in social_media_domains):
-            social_media_links.append(content)
-
-    # Extract addresses (simple regex for demonstration)
+    # Extract addresses using a simple pattern
     address_pattern = r'\d{1,5}\s\w+\s\w+'
     addresses = re.findall(address_pattern, soup.get_text())
     
-    # Extract company name
+    # Extract company name from the page title
     company_name = soup.title.string if soup.title else "N/A"
     
     return {
-        "emails": emails, 
-        "phone_numbers": phone_numbers, 
+        "emails": emails,
+        "phone_numbers": phone_numbers,
         "addresses": addresses,
         "social_media_links": social_media_links,
-        "company_name": company_name, 
+        "company_name": company_name,
         "domain": url
     }
 
-# Flask route for contact information
+# Flask route for contact finder page
 @app.route('/contactfinder', methods=['GET', 'POST'])
 def contact_finder():
     if request.method == 'POST':
         industry = request.form.get('industry')
         location = request.form.get('location')
+        
         if not industry or not location:
-            return redirect(url_for('contact_finder'))
+            return redirect(url_for('contact_finder'))  # Return to the form if fields are missing
 
         query = f"{industry} {location}"
-        search_results = scrape_bing_search(query)
+        search_results = scrape_bing_results(query)
 
         extracted_info = []
         for result in search_results:
@@ -1156,7 +1143,7 @@ def contact_finder():
 
     return render_template('contactfinder.html', title="Contact Finder", business_data=[])
 
-# Flask route for dashboard
+# Flask route for the dashboard page
 @app.route('/dashboard2')
 def dashboard2():
     return render_template('dashboard.html', 
@@ -1174,40 +1161,66 @@ def dashboard2():
 
 
 # SOCIAL INSIGHTS----------------------------------------------
+
 import requests
 from bs4 import BeautifulSoup
-import re
-from urllib.parse import urlparse
+import random
+from fake_useragent import UserAgent
 from flask import Flask, render_template, request, redirect, url_for
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+from urllib.parse import urlparse
+
+# Initialize Flask app
 
 
+# Initialize fake user agent
+user_agents = UserAgent()
 
-def initialize_webdriver():
-    chrome_options = Options()
-    chrome_options.add_argument("--headless")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    return webdriver.Chrome(options=chrome_options)
+# Define keywords to exclude directory-style and large global websites
+exclude_keywords = [
+    "directory", "listing", "top", "best", "guide", "reviews", "wiki", "global", "international",
+    "yelp", "tripadvisor", "yellowpages", "linkedin", "facebook", "twitter"
+]
 
+# Function to perform an HTTP request with rotating user agents and unique headers
+def perform_request(url):
+    headers = {
+        "User-Agent": user_agents.random,  # Randomized user agent each time
+        "Accept-Language": random.choice(["en-US", "en-GB", "en-CA"]),
+        "Connection": random.choice(["keep-alive", "close"]),  # Random connection type
+        "DNT": "1",  # Do Not Track header
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"  # Different Accept header
+    }
+
+    session = requests.Session()
+    retry_strategy = requests.adapters.Retry(total=3, backoff_factor=1)
+    adapter = requests.adapters.HTTPAdapter(max_retries=retry_strategy)
+    session.mount("https://", adapter)
+    session.mount("http://", adapter)
+
+    # Add random delay to mimic human browsing behavior
+    time.sleep(random.uniform(1, 4))  # Varying delay between 1 and 4 seconds
+
+    try:
+        response = session.get(url, headers=headers, timeout=10)
+        response.raise_for_status()
+        return response.text
+    except requests.exceptions.RequestException as e:
+        print(f"Error during request to {url}: {e}")
+        return None
+
+# Function to scrape Bing search results
 def bing_search(query):
-    driver = initialize_webdriver()
     search_url = f"https://www.bing.com/search?q={query}"
     
-    try:
-        driver.get(search_url)
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, 'b_algo')))
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-    finally:
-        driver.quit()
+    # Perform request to get the search results page
+    page_content = perform_request(search_url)
+    if not page_content:
+        return []
 
+    soup = BeautifulSoup(page_content, 'html.parser')
     results = []
 
+    # Extract the relevant information from the search results
     for result in soup.find_all('li', class_='b_algo'):
         title = result.find('h2').get_text() if result.find('h2') else 'No title'
         link = result.find('a')['href'] if result.find('a') else 'No link'
@@ -1223,15 +1236,13 @@ def bing_search(query):
 
     return results
 
+# Function to extract company name and social media links
 def get_contact_info(url):
-    driver = initialize_webdriver()
-    
-    try:
-        driver.get(url)
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.TAG_NAME, 'body')))
-        soup = BeautifulSoup(driver.page_source, 'html.parser')
-    finally:
-        driver.quit()
+    page_content = perform_request(url)
+    if not page_content:
+        return {"company_name": "N/A", "social_media_links": []}
+
+    soup = BeautifulSoup(page_content, 'html.parser')
 
     # Extract company name
     company_name = soup.title.string if soup.title else "N/A"
@@ -1243,7 +1254,7 @@ def get_contact_info(url):
         if any(social in href for social in ['facebook.com', 'twitter.com', 'linkedin.com', 'instagram.com']):
             social_media_links.append(href)
     
-    return {"company_name": company_name, "domain": url, "social_media_links": social_media_links}
+    return {"company_name": company_name, "social_media_links": social_media_links}
 
 @app.route('/socialinsights', methods=['GET', 'POST'])
 def social_insights():
@@ -1265,7 +1276,6 @@ def social_insights():
         return render_template('socialinsights.html', title="Social Insights", business_data=extracted_info)
 
     return render_template('socialinsights.html', title="Social Insights", business_data=[])
-
 
 
 
