@@ -1,18 +1,18 @@
 {% extends "layout.html" %}
 
-{% block title %}Dashboard - LeadsHUB{% endblock %}
+{% block title %}Dashboard {% endblock %}
 
 {% block content %}
 <div class="container mx-auto px-6 py-12">
     <!-- Dashboard Overview -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
         <!-- New Leads Card -->
-        <div class="bg-gradient-to-r from-orange-500 to-yellow-400 rounded-lg shadow-lg p-6 text-white relative hover:shadow-xl transform hover:scale-105 transition-all">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-700 rounded-lg shadow-lg p-6 text-white relative hover:shadow-xl transform hover:scale-105 transition-all">
             <h5 class="text-2xl font-semibold">Today's Insights</h5>
             <p class="text-md mb-4">Track your business performance and lead generation progress.</p>
             <div class="bg-gray-800 p-4 rounded-lg shadow-md text-center">
                 <h6 class="text-lg font-medium">New Leads</h6>
-                <h4 class="text-4xl font-extrabold text-yellow-200">{{ session.get('email_count', 0) + session.get('phone_count', 0) }}</h4>
+                <h4 class="text-4xl font-extrabold text-blue-200">{{ session.get('email_count', 0) + session.get('phone_count', 0) }}</h4>
             </div>
             <div class="absolute right-0 bottom-0 p-4 md:p-6">
                 <i class="fas fa-users fa-3x sm:fa-4x opacity-40"></i>
@@ -20,12 +20,12 @@
         </div>
 
         <!-- Qualified Leads Card -->
-        <div class="bg-gradient-to-r from-green-400 to-teal-500 rounded-lg shadow-lg p-6 text-white relative hover:shadow-xl transform hover:scale-105 transition-all">
+        <div class="bg-gradient-to-r from-teal-500 to-green-400 rounded-lg shadow-lg p-6 text-white relative hover:shadow-xl transform hover:scale-105 transition-all">
             <h5 class="text-2xl font-semibold">Today's Insights</h5>
             <p class="text-md mb-4">Check the number of leads qualified for the next stage.</p>
             <div class="bg-gray-800 p-4 rounded-lg shadow-md text-center">
                 <h6 class="text-lg font-medium">Qualified Leads</h6>
-                <h4 id="qualified-leads-count" class="text-4xl font-extrabold text-green-200">{{ session.get('email_count', 0) }}</h4>
+                <h4 id="qualified-leads-count" class="text-4xl font-extrabold text-teal-200">{{ session.get('email_count', 0) }}</h4>
             </div>
             <div class="absolute right-0 bottom-0 p-4 md:p-6">
                 <i class="fas fa-check-circle fa-3x sm:fa-4x opacity-40"></i>
@@ -34,42 +34,43 @@
     </div>
 
     <!-- Lead Breakdown Chart Card -->
-    <div class="bg-gray-800 rounded-lg shadow-lg mb-12">
-        <div class="bg-gray-900 text-white p-4 rounded-t-lg text-center">
-            <h4 class="text-xl">Lead Breakdown</h4>
-        </div>
-        <div class="p-6">
-            <canvas id="leadChart"></canvas>
-        </div>
+<div class="bg-gradient-to-r from-indigo-500 to-purple-700 rounded-lg shadow-lg mb-12">
+    <div class="bg-gray-900 text-white p-4 rounded-t-lg text-center">
+        <h4 class="text-xl">Lead Breakdown</h4>
     </div>
+    <div class="p-6">
+        <canvas id="leadChart"></canvas>
+    </div>
+</div>
 
-    <!-- Quick Start Guide Section -->
-    <div class="bg-gray-800 rounded-lg shadow-lg">
-        <div class="bg-gray-900 text-white p-4 rounded-t-lg text-center">
-            <h4 class="text-xl">Quick Start Guide</h4>
-        </div>
-        <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {% for icon, title, description, color in [
-                ('fa-tachometer-alt', 'Quick Overview', 'Get a snapshot of your business metrics.', 'text-yellow-400'),
-                ('fa-magic', 'AI Lead Finder', 'Leverage AI to find the best leads for your business.', 'text-blue-400'),
-                ('fa-check-circle', 'AI Lead Qualifier', 'Qualify leads based on your predefined criteria.', 'text-green-400'),
-                ('fa-clipboard-check', 'AI Lead Validator', 'Use AI to validate the quality of your leads.', 'text-purple-400'),
-                ('fa-user-secret', 'Competitor Spy', 'Spy on competitors and get insights into their strategy.', 'text-teal-400'),
-                ('fa-rocket', 'SEO Rocket', 'Boost your online visibility and traffic with SEO tools.', 'text-red-400'),
-                ('fa-phone', 'Contact Finder', 'Easily find and manage contacts across different platforms.', 'text-orange-500'),
-                ('fa-share-alt', 'Social Insights', 'Get insights into social media trends and engagement.', 'text-pink-400'),
-                ('fa-paper-plane', 'Email Blast PRO', 'Send professional email campaigns with high deliverability.', 'text-indigo-400'),
-                ('fa-headset', '24/7 Support Hub', 'Get round-the-clock support for all your business needs.', 'text-gray-400'),
-                ('fa-sign-out-alt', 'Log Out', 'Sign out of your account when you’re finished.', 'text-red-500')
-            ] %}
-                <div class="bg-gray-700 p-6 rounded-lg shadow-md text-center hover:scale-105 transition-all">
-                    <i class="fas {{ icon }} fa-2x sm:fa-3x md:fa-4x lg:fa-5x {{ color }} mb-4"></i>
-                    <h6 class="text-lg font-semibold text-white">{{ title }}</h6>
-                    <p class="text-gray-300">{{ description }}</p>
-                </div>
-            {% endfor %}
-        </div>
+<!-- Quick Start Guide Section -->
+<div class="bg-gradient-to-r from-indigo-500 to-purple-700 rounded-lg shadow-lg">
+    <div class="bg-gray-900 text-white p-4 rounded-t-lg text-center">
+        <h4 class="text-xl">Quick Start Guide</h4>
     </div>
+    <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for icon, title, description, color in [
+            ('fa-tachometer-alt', 'Quick View', 'Get a snapshot of your business metrics.', 'text-yellow-400'),
+            ('fa-search-location', 'Lead Wizard', 'Leverage AI to find the best leads for your business.', 'text-blue-400'),
+            ('fa-user-check', 'Lead Genius', 'Qualify leads based on your predefined criteria.', 'text-green-400'),
+            ('fa-clipboard-list', 'Lead Checker', 'Use AI to validate the quality of your leads.', 'text-purple-400'),
+            ('fa-user-secret', 'Competitors', 'Spy on competitors and get insights into their strategy.', 'text-teal-400'),
+            ('fa-rocket', 'SEO Blaster', 'Boost your online visibility and traffic with SEO tools.', 'text-red-400'),
+            ('fa-address-book', 'Contact Hunter', 'Easily find and manage contacts across different platforms.', 'text-orange-500'),
+            ('fa-chart-pie', 'Social Pulse', 'Get insights into social media trends and engagement.', 'text-pink-400'),
+            ('fa-envelope-open-text', 'Email Blast', 'Send professional email campaigns with high deliverability.', 'text-indigo-400'),
+            ('fa-life-ring', 'Help Desk', 'Get round-the-clock support for all your business needs.', 'text-blue-200'),
+            ('fa-sign-out-alt', 'Sign Out', 'Sign out of your account when you’re finished.', 'text-red-500')
+        ] %}
+            <div class="bg-black p-6 rounded-lg shadow-md text-center hover:scale-105 transition-all">
+                <i class="fas {{ icon }} fa-2x sm:fa-3x md:fa-4x lg:fa-5x {{ color }} mb-4"></i>
+                <h6 class="text-lg font-semibold text-white">{{ title }}</h6>
+                <p class="text-gray-300">{{ description }}</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
 </div>
 
 <!-- Include Chart.js -->
