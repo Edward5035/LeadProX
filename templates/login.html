@@ -15,7 +15,7 @@
             font-family: 'Orbitron', sans-serif;
             font-weight: 700;
             font-size: 2rem; /* Ensure the logo scales properly */
-            color: #0077FF; /* Blue color for the text */
+            color: #ff9100; /* Blue color for the text */
             text-transform: uppercase;
             letter-spacing: 4px;
             display: flex;
@@ -34,7 +34,7 @@
             position: absolute;
             width: 100%;
             height: 5px;
-            background: #0077FF; /* Blue background for the logo line */
+            background: #ff9100; /* Blue background for the logo line */
             bottom: -15px;
             left: 0;
         }
@@ -51,32 +51,34 @@
         }
     </style>
 </head>
-<body class="bg-cover bg-center flex justify-center items-center h-screen p-4" style="background-image: url('https://images.unsplash.com/photo-1736525150729-bd2e58ac0428?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');">
+<body class="bg-cover bg-center flex justify-center items-center h-screen p-4" style="background-image: url('https://img.freepik.com/free-vector/abstract-paper-style-background_23-2150760175.jpg?t=st=1741247588~exp=1741251188~hmac=b54313cbde47c775efd903f3b768210476bd732bd6431ac1b1dfc5b12f3b1897&w=740');">
 
     <div class="absolute inset-0 bg-gray-800 bg-opacity-60"></div> <!-- Overlay for dark background -->
 
-    <div class="relative z-10 bg-gray-800 p-8 rounded-lg max-w-md w-full shadow-lg shadow-blue-500">
+    <div class="relative z-10 bg-gray-800 p-8 rounded-lg max-w-md w-full shadow-lg shadow-orange-500">
         <!-- Logo Section -->
-        <div class="logo mb-8 flex items-center">
-            <i class="fas fa-atom w-10 h-10 mr-3"></i> <!-- Increased icon size and margin -->
-            <span class="text-xl">LeadFlow AI</span> <!-- Adjusted text size to match larger icon -->
+        <div class="logo text-3xl font-extrabold flex items-center space-x-3 mb-8"> <!-- Added margin-bottom to create space between logo and form -->
+            <i class="fas fa-bullseye text-5xl"></i> <!-- Larger icon size -->
+            <span class="font-mono">LeadGen AI</span> <!-- Larger text -->
         </div>
 
         <!-- Login Form -->
         <form method="post">
             <div class="mb-6">
                 <label for="username" class="block text-white text-xl font-semibold mb-2">Username</label>
-                <input type="text" id="username" name="username" class="w-full px-4 py-3 bg-gray-700 text-white rounded-md border-2 border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg" required>
+                <input type="text" id="username" name="username" class="w-full px-4 py-3 bg-gray-700 text-white rounded-md border-2 border-orange-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg" required>
             </div>
 
             <div class="mb-6">
                 <label for="password" class="block text-white text-xl font-semibold mb-2">Password</label>
-                <input type="password" id="password" name="password" class="w-full px-4 py-3 bg-gray-700 text-white rounded-md border-2 border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg" required>
+                <input type="password" id="password" name="password" class="w-full px-4 py-3 bg-gray-700 text-white rounded-md border-2 border-orange-500 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg" required>
             </div>
 
-            <button type="submit" class="w-full py-3 bg-blue-500 text-white rounded-md text-lg font-semibold hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Login</button>
+            <button type="submit" class="w-full py-3 bg-orange-500 text-white rounded-md text-lg font-semibold hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-blue-500">Login</button>
         </form>
     </div>
+
+</body>
 
     <!-- Include Font Awesome for icons -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>

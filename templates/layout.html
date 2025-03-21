@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}LeadsHUB{% endblock %}</title>
+    <title>{% block title %}LeadGen AI{% endblock %}</title>
 
-    <!-- Roboto font -->
+    <!-- Roboto Font -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
@@ -15,16 +16,31 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
+    :root {
+        --primary-blue: #d45c00; /* Modern blue */
+        --primary-orange: #FF6F00; /* Vibrant orange */
+        --bg-light: #F3F4F6; /* Soft light background */
+        --bg-dark: #1F2937; /* Dark background for high contrast */
+        --text-dark: #333333; /* Dark gray text */
+        --text-light: #F3F4F6; /* Light gray text */
+        --gray-400: #9CA3AF;
+        --gray-600: #4B5563;
+        --green-500: #10B981; /* For success states */
+        --red-500: #EF4444; /* For error/warning states */
+    }
+
     body {
         font-family: 'Roboto', sans-serif;
         display: flex;
         flex-direction: column;
         min-height: 100vh;
-        background-color: #ecf0f3;
+        background-color: var(--bg-light);
+        color: var(--text-dark);
     }
 
+    /* Top Navbar */
     .top-nav {
-        background-color: #000000;
+        background-color: var(--bg-dark);
         z-index: 50;
         position: fixed;
         top: 0;
@@ -34,45 +50,42 @@
         justify-content: space-between;
         align-items: center;
         color: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     .logo {
-        background: linear-gradient(to right, #0033ff, #0033ff);
-        -webkit-background-clip: text;
-        color: transparent;
-        font-size: 2rem;
-        font-weight: bold;
+        color: var(--primary-orange);
+        font-size: 1.75rem;
+        font-weight: 700;
         display: flex;
         align-items: center;
     }
 
     .logo i {
-        font-size: 2.5rem;
-        background: linear-gradient(to right, #0033ff, #0033ff);
-        -webkit-background-clip: text;
-        color: transparent;
+        font-size: 2.25rem;
         margin-right: 0.5rem;
     }
 
     .menu-icon {
         background: none;
-        color: #0077FF;
+        color: var(--gray-400);
         cursor: pointer;
     }
 
     .menu-icon i {
-        color: #0077FF;
+        color: var(--primary-orange);
         font-size: 1.5rem;
     }
 
+    /* Sidebar */
     .sidebar {
-        background-color: #000000;
+        background-color: var(--bg-dark);
         padding: 1rem;
         position: fixed;
         top: 4rem;
         left: 0;
         width: 100%;
-        max-width: 250px;
+        max-width: 250px; /* Slightly reduced sidebar width for better usability */
         height: calc(100% - 4rem);
         overflow-y: auto;
         transform: translateX(-100%);
@@ -88,36 +101,38 @@
 
     .sidebar-item {
         display: flex;
-        align-items: center; /* Ensures vertical alignment of text and icon */
+        align-items: center;
         padding: 0.75rem 1rem;
-        border-radius: 8px;
-        background: #ecf0f3;
-        margin-bottom: 1rem;
-        transition: background-color 0.3s ease, transform 0.3s ease;
-        color: #000000;
-        text-align: left; /* Ensures the text is left-aligned */
-        height: 50px; /* Ensures all items have the same height */
-        justify-content: flex-start; /* Align items to the start */
+        border-radius: 0.5rem;
+        margin-bottom: 0.75rem;
+        transition: background-color 0.3s ease, color 0.3s ease;
+        color: var(--gray-400);
+        text-align: left;
+        height: 50px;
+        justify-content: flex-start;
+        font-size: 1.1rem;
     }
 
     .sidebar-item i {
-        min-width: 20px; /* Ensures consistent icon spacing */
-        margin-right: 1rem;
-        color: #0077FF;
-        transition: transform 0.3s ease;
-        display: inline-flex; /* Ensures icon aligns with text */
-        align-items: center;
+        min-width: 30px;
+        margin-right: 0.75rem;
+        color: var(--primary-blue);
+        transition: color 0.3s ease;
+        font-size: 1.2rem;
     }
 
     .sidebar-item span {
-        display: inline-flex; /* Ensures text aligns with icon */
+        display: inline-flex;
         align-items: center;
-        flex: 1; /* Makes sure text takes remaining space */
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .sidebar-item:hover,
     .sidebar-item.active {
-        background: linear-gradient(to right, #0077FF, #0077FF);
+        background-color: var(--primary-blue);
         color: white;
     }
 
@@ -127,45 +142,46 @@
     }
 
     .logout-item {
-        background: linear-gradient(to right, #0077FF, #0077FF) !important;
-        color: white !important;
+        background-color: var(--red-500);
+        color: white;
     }
 
     .logout-item i {
-        color: white !important;
+        color: white;
     }
 
-    /* Main content area with margin to avoid overlap with the top navbar */
+    /* Main content area */
     .content {
         margin-left: 0;
-        padding: 1rem;
+        padding: 2rem;
         flex-grow: 1;
-        margin-top: 4rem; /* Ensure content starts below the fixed top navbar */
+        margin-top: 4rem;
     }
 
     @media (min-width: 1024px) {
         .sidebar {
             transform: translateX(0);
-            width: 250px;
+            width: 250px; /* Slightly reduced sidebar width */
         }
 
         .content {
-            margin-left: 250px;
+            margin-left: 250px; /* Adjusted to match the new sidebar width */
         }
-    }
-
-    /* Menu icon */
-    .menu-icon {
-        cursor: pointer;
     }
 
     /* Footer styles */
     footer {
         margin-top: auto;
-        background-color: #0077FF;
-        color: white;
+        background-color: var(--bg-dark);
+        color: var(--text-light);
         padding: 1rem;
         text-align: center;
+        font-size: 0.875rem;
+    }
+
+    /* Utility Classes */
+    .shadow-md {
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     }
 </style>
 
@@ -174,53 +190,48 @@
 
     <!-- Top Navbar -->
     <div class="top-nav flex justify-between items-center p-4 fixed w-full top-0 text-white">
-       <div class="logo text-2xl font-bold flex items-center space-x-2">
-    <i class="fas fa-atom"></i>
-    <span>LeadFlow AI</span>
-     </div>
-     <div class="menu-icon block lg:hidden" onclick="toggleSidebar()">
+        <div class="logo text-2xl font-extrabold flex items-center space-x-2">
+            <i class="fas fa-bullseye"></i>
+            <span class="font-mono">LeadGen AI</span>
+        </div>
+
+        <div class="menu-icon block lg:hidden" onclick="toggleSidebar()">
             <i class="fas fa-bars"></i>
         </div>
     </div>
 
-  <div id="sidebar" class="sidebar">
-    <!-- Sidebar items to ensure consistent vertical alignment -->
-    <a href="{{ url_for('dashboard') }}" class="sidebar-item">
-        <i class="fas fa-tachometer-alt"></i> <span>Quick View</span>
-    </a>
-    <a href="{{ url_for('leadfinder') }}" class="sidebar-item">
-        <i class="fas fa-search-location"></i> <span>Lead Wizard</span>
-    </a>
-    <a href="{{ url_for('qualify_new_leads') }}" class="sidebar-item">
-        <i class="fas fa-user-check"></i> <span>Lead Genius</span>
-    </a>
-    <a href="{{ url_for('validate_leads') }}" class="sidebar-item">
-        <i class="fas fa-clipboard-list"></i> <span>Lead Checker</span>
-    </a>
-    <a href="{{ url_for('seorocket') }}" class="sidebar-item">
-        <i class="fas fa-rocket"></i> <span>SEO Blaster</span>
-    </a>
-    <a href="{{ url_for('competitor_analysis') }}" class="sidebar-item">
-        <i class="fas fa-user-secret"></i> <span>Competitors</span>
-    </a>
-    <a href="{{ url_for('social_insights') }}" class="sidebar-item">
-        <i class="fas fa-chart-pie"></i> <span>Social Pulse</span>
-    </a>
-    <a href="{{ url_for('contact_finder') }}" class="sidebar-item">
-        <i class="fas fa-address-book"></i> <span>Contact Hunter</span>
-    </a>
-    <a href="{{ url_for('mass_outreach') }}" class="sidebar-item">
-        <i class="fas fa-envelope-open-text"></i> <span>Email Blast</span>
-    </a>
-    <a href="{{ url_for('help_support') }}" class="sidebar-item">
-        <i class="fas fa-life-ring"></i> <span>Help Desk</span>
-    </a>
-    <a href="{{ url_for('logout') }}" class="sidebar-item logout-item">
-        <i class="fas fa-sign-out-alt"></i> <span>Sign Out</span>
-    </a>
-</div>
-
-
+    <div id="sidebar" class="sidebar">
+        <a href="{{ url_for('dashboard') }}" class="sidebar-item">
+            <i class="fas fa-tachometer-alt"></i> <span>My Dashboard</span>
+        </a>
+        <a href="{{ url_for('hot_leads') }}" class="sidebar-item">
+            <i class="fas fa-search-location"></i> <span>Hot Leads</span>
+        </a>
+        <a href="{{ url_for('lead_manager') }}" class="sidebar-item">
+            <i class="fas fa-user-check"></i> <span>Lead Manager</span>
+        </a>
+        <a href="{{ url_for('email_leads') }}" class="sidebar-item">
+            <i class="fas fa-envelope-open-text"></i> <span>Email Leads</span>
+        </a>
+        <a href="{{ url_for('phone_leads') }}" class="sidebar-item">
+            <i class="fas fa-phone-alt"></i> <span>Phone Leads</span>
+        </a>
+        <a href="{{ url_for('address_leads') }}" class="sidebar-item">
+            <i class="fas fa-map-marker-alt"></i> <span>Address Leads</span>
+        </a>
+        <a href="{{ url_for('people_search') }}" class="sidebar-item">
+            <i class="fas fa-user-friends"></i> <span>People Search</span>
+        </a>
+        <a href="{{ url_for('social_media_leads') }}" class="sidebar-item">
+            <i class="fas fa-share-alt"></i> <span>Social Media Leads</span>
+        </a>
+        <a href="{{ url_for('help_support') }}" class="sidebar-item">
+            <i class="fas fa-life-ring"></i> <span>24/7 Help Desk</span>
+        </a>
+        <a href="{{ url_for('logout') }}" class="sidebar-item logout-item">
+            <i class="fas fa-sign-out-alt"></i> <span>Log Out</span>
+        </a>
+    </div>
 
     <!-- Content -->
     <main class="content">
@@ -229,35 +240,27 @@
 
     <!-- Footer -->
     <footer>
-        &copy; 2025 LeadsHUB. All rights reserved.
+        &copy; 2025 LeadGen AI. All rights reserved.
     </footer>
 
-   <script>
-    // Function to toggle the sidebar visibility
-    function toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        sidebar.classList.toggle('open');
-    }
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('open');
+        }
 
-    // Automatic active class assignment based on the current page URL
-    document.addEventListener('DOMContentLoaded', function() {
-        const currentUrl = window.location.pathname; // Get the current page URL path
-
-        // Loop through all sidebar items
-        document.querySelectorAll('.sidebar-item').forEach(item => {
-            // Get the href of each item
-            const itemUrl = item.getAttribute('href');
-
-            // Compare the current page URL with the href of each sidebar item
-            if (currentUrl === itemUrl) {
-                item.classList.add('active'); // Add the 'active' class to the matching item
-            } else {
-                item.classList.remove('active'); // Remove the 'active' class from others
-            }
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentUrl = window.location.pathname;
+            document.querySelectorAll('.sidebar-item').forEach(item => {
+                const itemUrl = item.getAttribute('href');
+                if (currentUrl === itemUrl) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
         });
-    });
-</script>
-
+    </script>
 
 </body>
 </html>

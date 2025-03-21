@@ -1,149 +1,126 @@
 {% extends "layout.html" %}
 
-{% block title %}Dashboard {% endblock %}
+{% block title %}Lead Mastery Dashboard{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-6 py-12">
-    <!-- Dashboard Overview -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-        <!-- New Leads Card -->
-        <div class="bg-gradient-to-r from-blue-500 to-blue-700 rounded-lg shadow-lg p-6 text-white relative hover:shadow-xl transform hover:scale-105 transition-all">
-            <h5 class="text-2xl font-semibold">Today's Insights</h5>
-            <p class="text-md mb-4">Track your business performance and lead generation progress.</p>
-            <div class="bg-gray-800 p-4 rounded-lg shadow-md text-center">
-                <h6 class="text-lg font-medium">New Leads</h6>
-                <h4 class="text-4xl font-extrabold text-blue-200">{{ session.get('email_count', 0) + session.get('phone_count', 0) }}</h4>
+<div class="bg-gradient-to-br from-orange-900 to-purple-900 min-h-screen py-12 text-white font-sans">
+    <div class="container mx-auto px-6 py-12">
+
+        <!-- Dashboard Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+
+            <!-- New Leads Card -->
+            <div class="bg-gradient-to-br from-gray-800 to-gray-700 rounded-3xl shadow-2xl p-6 text-white relative hover:shadow-3xl transform hover:scale-110 transition-all border border-orange-700">
+                <h5 class="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Unlock Your Potential</h5>
+                <p class="text-md mb-4 text-gray-200">Discover new opportunities and track your business growth with precision.</p>
+                <div class="bg-gray-900 bg-opacity-50 p-4 rounded-lg shadow-md text-center">
+                    <h6 class="text-lg font-medium text-orange-300">Total New Leads</h6>
+                    <h4 class="text-4xl font-extrabold text-yellow-300">{{ session.get('email_count', 0) + session.get('phone_count', 0) }}</h4>
+                </div>
+                <div class="absolute right-0 bottom-0 p-4 md:p-6">
+                    <i class="fas fa-rocket fa-3x sm:fa-4x opacity-40 text-orange-400"></i>
+                </div>
             </div>
-            <div class="absolute right-0 bottom-0 p-4 md:p-6">
-                <i class="fas fa-users fa-3x sm:fa-4x opacity-40"></i>
+
+            <!-- Qualified Leads Card -->
+            <div class="bg-gradient-to-br from-gray-800 to-gray-700 rounded-3xl shadow-2xl p-6 text-white relative hover:shadow-3xl transform hover:scale-110 transition-all border border-orange-700">
+                <h5 class="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Nurture Your Success</h5>
+                <p class="text-md mb-4 text-gray-200">Identify and cultivate leads ready for the next step.</p>
+                <div class="bg-gray-900 bg-opacity-50 p-4 rounded-lg shadow-md text-center">
+                    <h6 class="text-lg font-medium text-orange-300">Qualified Leads</h6>
+                    <h4 id="qualified-leads-count" class="text-4xl font-extrabold text-yellow-300">{{ session.get('email_count', 0) }}</h4>
+                </div>
+                <div class="absolute right-0 bottom-0 p-4 md:p-6">
+                    <i class="fas fa-check-circle fa-3x sm:fa-4x opacity-40 text-orange-400"></i>
+                </div>
             </div>
+
         </div>
 
-        <!-- Qualified Leads Card -->
-        <div class="bg-gradient-to-r from-teal-500 to-green-400 rounded-lg shadow-lg p-6 text-white relative hover:shadow-xl transform hover:scale-105 transition-all">
-            <h5 class="text-2xl font-semibold">Today's Insights</h5>
-            <p class="text-md mb-4">Check the number of leads qualified for the next stage.</p>
-            <div class="bg-gray-800 p-4 rounded-lg shadow-md text-center">
-                <h6 class="text-lg font-medium">Qualified Leads</h6>
-                <h4 id="qualified-leads-count" class="text-4xl font-extrabold text-teal-200">{{ session.get('email_count', 0) }}</h4>
-            </div>
-            <div class="absolute right-0 bottom-0 p-4 md:p-6">
-                <i class="fas fa-check-circle fa-3x sm:fa-4x opacity-40"></i>
+        <!-- Lead Progress Circle -->
+<div class="bg-gradient-to-br from-gray-800 to-gray-700 rounded-3xl shadow-2xl mb-12 border border-orange-700">
+    <div class="bg-gray-900 bg-opacity-70 text-white p-4 rounded-t-3xl text-center">
+        <h4 class="text-xl text-yellow-400">Lead Progress</h4>
+    </div>
+    <div class="p-6 flex justify-center">
+        <div class="w-64 h-64 relative">
+            <svg viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="45" stroke-width="10" stroke="#2c3e50" fill="none" />
+                <circle cx="50" cy="50" r="45" stroke-width="10" stroke="#FF7F50" fill="none" stroke-dasharray="283" stroke-dashoffset="{{ 283 - (session.get('email_count', 0) + session.get('phone_count', 0)) * 283 / 1000 }}" />
+            </svg>
+            <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                <h6 class="text-lg font-medium text-orange-300">Lead Completion</h6>
+                <h4 class="text-4xl font-extrabold text-yellow-300">{{ (session.get('email_count', 0) + session.get('phone_count', 0)) }} / 1000</h4>
             </div>
         </div>
-    </div>
-
-    <!-- Lead Breakdown Chart Card -->
-<div class="bg-gradient-to-r from-indigo-500 to-purple-700 rounded-lg shadow-lg mb-12">
-    <div class="bg-gray-900 text-white p-4 rounded-t-lg text-center">
-        <h4 class="text-xl">Lead Breakdown</h4>
-    </div>
-    <div class="p-6">
-        <canvas id="leadChart"></canvas>
     </div>
 </div>
 
+<!-- Email and Phone Counts -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+
+    <!-- Email Leads Card -->
+    <div class="bg-gradient-to-br from-gray-800 to-gray-700 rounded-3xl shadow-2xl p-6 text-white relative hover:shadow-3xl transform hover:scale-110 transition-all border border-orange-700">
+        <h5 class="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Email Leads</h5>
+        <p class="text-md mb-4 text-gray-200">Track your email lead generation progress.</p>
+        <div class="bg-gray-900 bg-opacity-50 p-4 rounded-lg shadow-md text-center">
+            <h6 class="text-lg font-medium text-orange-300">Total Email Leads</h6>
+            <h4 class="text-4xl font-extrabold text-yellow-300">{{ session.get('email_count', 0) }}</h4>
+        </div>
+        <div class="absolute right-0 bottom-0 p-4 md:p-6">
+            <i class="fas fa-envelope fa-3x sm:fa-4x opacity-40 text-orange-400"></i>
+        </div>
+    </div>
+
+    <!-- Phone Leads Card -->
+    <div class="bg-gradient-to-br from-gray-800 to-gray-700 rounded-3xl shadow-2xl p-6 text-white relative hover:shadow-3xl transform hover:scale-110 transition-all border border-orange-700">
+        <h5 class="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500">Phone Leads</h5>
+        <p class="text-md mb-4 text-gray-200">Manage and engage with phone number leads effectively.</p>
+        <div class="bg-gray-900 bg-opacity-50 p-4 rounded-lg shadow-md text-center">
+            <h6 class="text-lg font-medium text-orange-300">Total Phone Leads</h6>
+            <h4 class="text-4xl font-extrabold text-yellow-300">{{ session.get('phone_count', 0) }}</h4>
+        </div>
+        <div class="absolute right-0 bottom-0 p-4 md:p-6">
+            <i class="fas fa-phone-alt fa-3x sm:fa-4x opacity-40 text-orange-400"></i>
+        </div>
+    </div>
+
+</div>
+
 <!-- Quick Start Guide Section -->
-<div class="bg-gradient-to-r from-indigo-500 to-purple-700 rounded-lg shadow-lg">
-    <div class="bg-gray-900 text-white p-4 rounded-t-lg text-center">
-        <h4 class="text-xl">Quick Start Guide</h4>
+<div class="bg-gradient-to-br from-gray-800 to-gray-700 rounded-3xl shadow-2xl border border-orange-700">
+    <div class="bg-gray-900 bg-opacity-70 text-white p-4 rounded-t-3xl text-center">
+        <h4 class="text-xl text-yellow-400">Your Lead Journey Starts Here</h4>
     </div>
     <div class="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {% for icon, title, description, color in [
-            ('fa-tachometer-alt', 'Quick View', 'Get a snapshot of your business metrics.', 'text-yellow-400'),
-            ('fa-search-location', 'Lead Wizard', 'Leverage AI to find the best leads for your business.', 'text-blue-400'),
-            ('fa-user-check', 'Lead Genius', 'Qualify leads based on your predefined criteria.', 'text-green-400'),
-            ('fa-clipboard-list', 'Lead Checker', 'Use AI to validate the quality of your leads.', 'text-purple-400'),
-            ('fa-user-secret', 'Competitors', 'Spy on competitors and get insights into their strategy.', 'text-teal-400'),
-            ('fa-rocket', 'SEO Blaster', 'Boost your online visibility and traffic with SEO tools.', 'text-red-400'),
-            ('fa-address-book', 'Contact Hunter', 'Easily find and manage contacts across different platforms.', 'text-orange-500'),
-            ('fa-chart-pie', 'Social Pulse', 'Get insights into social media trends and engagement.', 'text-pink-400'),
-            ('fa-envelope-open-text', 'Email Blast', 'Send professional email campaigns with high deliverability.', 'text-indigo-400'),
-            ('fa-life-ring', 'Help Desk', 'Get round-the-clock support for all your business needs.', 'text-blue-200'),
-            ('fa-sign-out-alt', 'Sign Out', 'Sign out of your account when you’re finished.', 'text-red-500')
+            ('fa-tachometer-alt', 'Dashboard Insights', 'Get instant insights into your lead generation performance.', 'text-yellow-400'),
+            ('fa-search-location', 'Lead Prospecting', 'Find and engage with high-potential leads.', 'text-orange-400'),
+            ('fa-user-check', 'Lead Nurturing', 'Build strong relationships with your leads through personalized nurturing.', 'text-green-400'),
+            ('fa-clipboard-list', 'Email Automation', 'Streamline your email outreach with automated workflows.', 'text-purple-400'),
+            ('fa-phone-alt', 'Phone Lead Management', 'Effortlessly manage and follow up on phone leads.', 'text-teal-400'),
+            ('fa-map-marker-alt', 'Address Lead Collection', 'Organize and utilize address leads for targeted campaigns.', 'text-red-400'),
+            ('fa-user-friends', 'People Search', 'Uncover detailed profiles of potential leads and clients.', 'text-orange-500'),
+            ('fa-share-alt', 'Social Media Lead Generation', 'Harness social media to discover and engage with new leads.', 'text-pink-400'),
+            ('fa-life-ring', '24/7 Support', 'Access expert support whenever you need it.', 'text-blue-200'),
+            ('fa-sign-out-alt', 'Log Out', 'Securely log out of your account.', 'text-red-500')
         ] %}
-            <div class="bg-black p-6 rounded-lg shadow-md text-center hover:scale-105 transition-all">
-                <i class="fas {{ icon }} fa-2x sm:fa-3x md:fa-4x lg:fa-5x {{ color }} mb-4"></i>
-                <h6 class="text-lg font-semibold text-white">{{ title }}</h6>
-                <p class="text-gray-300">{{ description }}</p>
-            </div>
+        <div class="bg-gray-900 bg-opacity-70 p-6 rounded-2xl shadow-md text-center hover:scale-105 transition-all">
+            <i class="fas {{ icon }} fa-2x sm:fa-3x md:fa-4x lg:fa-5x {{ color }} mb-4"></i>
+            <h6 class="text-lg font-semibold text-orange-300">{{ title }}</h6>
+            <p class="text-gray-300">{{ description }}</p>
+        </div>
         {% endfor %}
     </div>
 </div>
 
 </div>
-
-<!-- Include Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-<script>
-    var ctx = document.getElementById('leadChart').getContext('2d');
-
-    var leadChart = new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: ['Emails', 'Phone Numbers', 'Addresses', 'Social Media', 'Company Names'],
-            datasets: [{
-                label: 'Lead Breakdown',
-                data: [
-                    {{ session.get('email_count', 0) }},
-                    {{ session.get('phone_count', 0) }},
-                    {{ session.get('address_count', 0) }},
-                    {{ session.get('social_media_count', 0) }},
-                    {{ session.get('company_name_count', 0) }}
-                ],
-                backgroundColor: '#FF7F50',  /* Coral */
-                borderColor: '#FFFFFF',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'top',
-                    labels: {
-                        color: '#ffffff'  // Change legend text color to white
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(tooltipItem) {
-                            return tooltipItem.label + ': ' + tooltipItem.raw + ' leads';
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: {
-                    ticks: {
-                        color: '#ffffff'  // Change x-axis text color to white
-                    }
-                },
-                y: {
-                    ticks: {
-                        color: '#ffffff'  // Change y-axis text color to white
-                    }
-                }
-            }
-        }
-    });
-
-    window.addEventListener('resize', function() {
-        leadChart.resize();
-    });
-</script>
+</div>
 
 <style>
     .card:hover {
         box-shadow: 0px 10px 25px rgba(0, 0, 0, 0.15);
         transform: translateY(-5px);
-    }
-
-    .chart-card-body {
-        height: 400px;
-        padding: 2rem;
     }
 
     .hover\:scale-105:hover {
@@ -154,5 +131,4 @@
         box-shadow: 0px 12px 24px rgba(0, 0, 0, 0.2);
     }
 </style>
-
 {% endblock %}

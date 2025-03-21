@@ -1,0 +1,348 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<div class="bg-gradient-to-br from-orange-900 to-purple-900 min-h-screen py-12 text-white font-sans">
+    <div class="container mx-auto px-4">
+
+        <!-- Header Section -->
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-orange-500 tracking-tight">
+                Generate Hot Leads Now
+            </h1>
+            <p class="mt-3 text-xl text-gray-200 leading-relaxed">Find high-conversion professional leads with ease.</p>
+        </div>
+
+        <!-- Enhanced Search Form -->
+        <div class="max-w-5xl mx-auto mb-12">
+            <form id="searchForm" action="{{ url_for('hot_leads') }}" method="POST"
+                  class="bg-gradient-to-br from-gray-800 to-gray-700 bg-opacity-30 backdrop-blur-md p-8 rounded-3xl shadow-lg border border-orange-700"
+                  onsubmit="combineFormData()">
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+
+                    <!-- Service Type -->
+                    <div>
+                        <label for="service" class="block text-orange-300 text-sm font-semibold mb-2 tracking-wide">Service Type</label>
+                        <input type="text" name="service" id="service"
+                               class="w-full px-4 py-3 rounded-xl bg-gray-900 bg-opacity-70 text-white placeholder-gray-400
+                                      focus:ring-2 focus:ring-orange-500 focus:border-transparent border border-gray-700 transition-colors duration-300"
+                               placeholder="e.g., Opticians">
+                    </div>
+
+                    <!-- Location -->
+                    <div>
+                        <label for="location" class="block text-orange-300 text-sm font-semibold mb-2 tracking-wide">Location</label>
+                        <input type="text" name="location" id="location"
+                               class="w-full px-4 py-3 rounded-xl bg-gray-900 bg-opacity-70 text-white placeholder-gray-400
+                                      focus:ring-2 focus:ring-orange-500 focus:border-transparent border border-gray-700 transition-colors duration-300"
+                               placeholder="e.g., Miami, FL">
+                    </div>
+
+                    <!-- Specialty -->
+                    <div>
+                        <label for="specialty" class="block text-orange-300 text-sm font-semibold mb-2 tracking-wide">Specialty</label>
+                        <input type="text" name="specialty" id="specialty"
+                               class="w-full px-4 py-3 rounded-xl bg-gray-900 bg-opacity-70 text-white placeholder-gray-400
+                                      focus:ring-2 focus:ring-orange-500 focus:border-transparent border border-gray-700 transition-colors duration-300"
+                               placeholder="e.g., Eye Exams">
+                    </div>
+
+                    <!-- Certification -->
+                    <div>
+                        <label for="certification" class="block text-orange-300 text-sm font-semibold mb-2 tracking-wide">Certification</label>
+                        <input type="text" name="certification" id="certification"
+                               class="w-full px-4 py-3 rounded-xl bg-gray-900 bg-opacity-70 text-white placeholder-gray-400
+                                      focus:ring-2 focus:ring-orange-500 focus:border-transparent border border-gray-700 transition-colors duration-300"
+                               placeholder="e.g., OD">
+                    </div>
+
+                    <!-- Industry -->
+                    <div>
+                        <label for="industry" class="block text-orange-300 text-sm font-semibold mb-2 tracking-wide">Industry</label>
+                        <input type="text" name="industry" id="industry"
+                               class="w-full px-4 py-3 rounded-xl bg-gray-900 bg-opacity-70 text-white placeholder-gray-400
+                                      focus:ring-2 focus:ring-orange-500 focus:border-transparent border border-gray-700 transition-colors duration-300"
+                               placeholder="e.g., Healthcare">
+                    </div>
+
+                    <!-- Niche -->
+                    <div>
+                        <label for="niche" class="block text-orange-300 text-sm font-semibold mb-2 tracking-wide">Niche</label>
+                        <input type="text" name="niche" id="niche"
+                               class="w-full px-4 py-3 rounded-xl bg-gray-900 bg-opacity-70 text-white placeholder-gray-400
+                                      focus:ring-2 focus:ring-orange-500 focus:border-transparent border border-gray-700 transition-colors duration-300"
+                               placeholder="e.g., Pediatric Optometry">
+                    </div>
+
+                </div>
+
+                <!-- Hidden query field for backend -->
+                <input type="hidden" name="query" id="combinedQuery" value="{{ query }}">
+                <!-- Search Button -->
+                <div class="text-center">
+                    <button type="submit"
+                            class="relative overflow-hidden px-8 py-4 rounded-xl font-semibold text-white tracking-wide
+                                   bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-400 hover:to-orange-500
+                                   hover:scale-105 transition-transform duration-300 shadow-md">
+                        <span id="buttonText">🔥 Generate Leads</span>
+                        <div id="loader" class="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-70 hidden">
+                            <div class="animate-spin rounded-full h-7 w-7 border-b-2 border-white"></div>
+                        </div>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results Expectations Section (Visible Until Results Load) -->
+        {% if not results %}
+        <div class="max-w-5xl mx-auto mb-12 text-center text-gray-300">
+            <h2 class="text-3xl font-semibold mb-4 tracking-tight">Unlock Lead Potential</h2>
+            <p class="text-lg mb-6 leading-relaxed">Enter your criteria to discover potential professional connections and detailed contact information:</p>
+            <ul class="list-disc list-inside text-left">
+                <li class="mb-2"><span class="text-yellow-300">Professional Titles</span> and Business Names</li>
+                <li class="mb-2">Concise and Relevant <span class="text-yellow-300">Descriptions</span></li>
+                <li class="mb-2">Verified <span class="text-yellow-300">Contact Details</span> (Phone, Email, Address)</li>
+                <li class="mb-2">Direct <span class="text-yellow-300">Website Links</span></li>
+            </ul>
+            <p class="mt-6 text-md tracking-wide">Example Result:</p>
+            <div class="bg-gray-700 bg-opacity-30 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-orange-700 mt-4">
+                <div class="flex items-center space-x-4 mb-5">
+                    <div class="p-3 rounded-xl bg-orange-900 bg-opacity-30">
+                        <i class="fas fa-briefcase text-2xl text-orange-400"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold text-orange-300 tracking-tight">Acme Opticians</h3>
+                    </div>
+                </div>
+                <div class="bg-gray-800 bg-opacity-20 p-4 rounded-xl border border-orange-700 mb-3">
+                    <p class="text-gray-400 text-sm"><i class="fas fa-info-circle mr-2"></i> Description</p>
+                    <p class="text-gray-300 text-sm leading-relaxed">Comprehensive eye care services, including eye exams, contact lens fittings, and designer eyewear.</p>
+                </div>
+                <div class="bg-gray-800 bg-opacity-20 p-4 rounded-xl border border-orange-700 mb-3">
+                    <p class="text-gray-400 text-sm"><i class="fas fa-phone mr-2"></i> Phone</p>
+                    <div class="text-green-300 font-mono">(555) 123-4567</div>
+                </div>
+                <div class="bg-gray-800 bg-opacity-20 p-4 rounded-xl border border-orange-700 mb-3">
+                    <p class="text-gray-400 text-sm"><i class="fas fa-envelope mr-2"></i> Email</p>
+                    <a href="mailto:info@acmeopticians.com" class="block text-blue-300 hover:text-blue-200 truncate text-sm">info@acmeopticians.com</a>
+                </div>
+                <div class="bg-gray-800 bg-opacity-20 p-4 rounded-xl border border-orange-700 mb-3">
+                    <p class="text-gray-400 text-sm"><i class="fas fa-map-marker-alt mr-2"></i> Address</p>
+                    <div class="text-gray-300 text-sm truncate">123 Main Street, Anytown, USA</div>
+                </div>
+                <div class="bg-gray-800 bg-opacity-20 p-4 rounded-xl border border-orange-700">
+                    <p class="text-gray-400 text-sm"><i class="fas fa-link mr-2"></i> Website</p>
+                    <a href="https://www.acmeopticians.com" target="_blank" class="text-blue-300 hover:text-blue-200 truncate text-sm">www.acmeopticians.com</a>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button class="relative overflow-hidden px-8 py-4 rounded-xl font-semibold text-white tracking-wide
+                                   bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-400 hover:to-orange-500
+                                   hover:scale-105 transition-transform duration-300 shadow-md" onclick="copyResult(this)">
+                        Copy
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Sorting and Filtering Options -->
+        {% if results %}
+        <div class="max-w-6xl mx-auto mb-6 flex justify-end items-center space-x-4">
+            <label for="sortCriteria" class="text-orange-300 font-semibold">Sort By:</label>
+            <select id="sortCriteria" class="px-4 py-2 rounded-lg bg-gray-900 text-white">
+                <option value="">Relevance</option>
+                <option value="title">Title</option>
+                <option value="description">Description</option>
+            </select>
+        </div>
+        {% endif %}
+
+        <!-- Results Section -->
+        {% if results %}
+            <div id="resultsContainer" class="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-6xl mx-auto">
+                {% for result in results %}
+                <div class="result-item bg-gradient-to-br from-gray-800 to-gray-700 bg-opacity-30 backdrop-blur-md rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 border border-orange-700"
+                     data-title="{{ result.title }}" data-description="{{ result.description }}"
+                     data-emails="{{ result.emails|join(',') if result.emails }}"
+                     data-phone_numbers="{{ result.phone_numbers|join(',') if result.phone_numbers }}"
+                     data-address="{{ result.addresses|join(',') if result.addresses }}">
+
+                    <!-- Header -->
+                    <div class="flex items-center space-x-4 mb-5">
+                        <div class="p-3 rounded-xl bg-orange-900 bg-opacity-30">
+                            <i class="fas fa-briefcase text-2xl text-orange-400"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xl font-semibold text-orange-300 tracking-tight">{{ result.title }}</h3>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    {% if result.description %}
+                    <div class="bg-gray-900 bg-opacity-20 p-4 rounded-xl border border-orange-700 mb-3">
+                        <p class="text-gray-400 text-sm"><i class="fas fa-info-circle mr-2"></i> Description</p>
+                        <p class="text-gray-300 text-sm leading-relaxed">{{ result.description }}</p>
+                    </div>
+                    {% endif %}
+
+                    <!-- Contact Info -->
+                    <div class="space-y-3">
+                        {% if result.phone_numbers %}
+                        <div class="bg-gray-900 bg-opacity-20 p-4 rounded-xl border border-orange-700 mb-3">
+                            <p class="text-gray-400 text-sm"><i class="fas fa-phone mr-2"></i> Phone</p>
+                            {% for phone in result.phone_numbers %}
+                            <div class="text-green-300 font-mono phone-number">{{ phone }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% if result.emails %}
+                        <div class="bg-gray-900 bg-opacity-20 p-4 rounded-xl border border-orange-700 mb-3">
+                            <p class="text-gray-400 text-sm"><i class="fas fa-envelope mr-2"></i> Email</p>
+                            {% for email in result.emails %}
+                            <a href="mailto:{{ email }}" class="block text-blue-300 hover:text-blue-200 truncate text-sm email-address">{{ email }}</a>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        {% if result.addresses %}
+                        <div class="bg-gray-900 bg-opacity-20 p-4 rounded-xl border border-orange-700 mb-3">
+                            <p class="text-gray-400 text-sm"><i class="fas fa-map-marker-alt mr-2"></i> Address</p>
+                            {% for address in result.addresses %}
+                            <div class="text-gray-300 text-sm truncate address">{{ address }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+
+                        <!-- URL Section -->
+                        {% if result.link %}
+                        <div class="bg-gray-900 bg-opacity-20 p-4 rounded-xl border border-orange-700">
+                            <p class="text-gray-400 text-sm"><i class="fas fa-link mr-2"></i> Website</p>
+                            <a href="{{ result.link }}" target="_blank" class="text-blue-300 hover:text-blue-200 truncate text-sm">Visit Website</a>
+                        </div>
+                        {% endif %}
+
+                    </div>
+
+                    <!-- Footer -->
+                    <div class="mt-6 border-t border-orange-700 border-opacity-50 pt-4 flex justify-end items-center space-x-4">
+                        <a href="{{ result.link }}" target="_blank"
+                           class="flex items-center justify-center space-x-2 text-white py-3 px-6 rounded-xl
+                                  bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-400 hover:to-orange-500 transition-colors duration-300 shadow-md explore-more-button">
+                            <i class="fas fa-external-link-alt"></i>
+                            <span>Explore More</span>
+                        </a>
+                        <button class="relative overflow-hidden px-8 py-4 rounded-xl font-semibold text-white tracking-wide
+                                       bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-400 hover:to-orange-500
+                                       hover:scale-105 transition-transform duration-300 shadow-md"
+                                onclick="copyResult(this)">
+                            Copy
+                        </button>
+                    </div>
+
+                </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-gray-400 text-center mt-10">No results available.</p>
+        {% endif %}
+        <div class="max-w-6xl mx-auto mt-8 flex justify-center space-x-4">
+            <button id="copyAllButton" class="relative overflow-hidden px-8 py-4 rounded-xl font-semibold text-white tracking-wide
+                                           bg-gradient-to-r from-yellow-500 to-orange-600 hover:from-yellow-400 hover:to-orange-500
+                                           hover:scale-105 transition-transform duration-300 shadow-md">
+                Copy All Results
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    function combineFormData() {
+        const service = document.getElementById('service').value;
+        const location = document.getElementById('location').value;
+        const specialty = document.getElementById('specialty').value;
+		const certification = document.getElementById('certification').value;
+        const industry = document.getElementById('industry').value;
+        const niche = document.getElementById('niche').value;
+
+        let combinedQuery = '';
+
+        if (service) combinedQuery += service + ' ';
+        if (location) combinedQuery += location + ' ';
+        if (specialty) combinedQuery += specialty + ' ';
+		if (certification) combinedQuery += certification + ' ';
+        if (industry) combinedQuery += industry + ' ';
+        if (niche) combinedQuery += niche;
+
+        document.getElementById('combinedQuery').value = combinedQuery.trim();
+    }
+
+    document.getElementById('searchForm').addEventListener('submit', function() {
+        document.getElementById('buttonText').innerText = 'Generating Leads...';
+        document.getElementById('loader').classList.remove('hidden');
+    });
+
+    function copyResult(element) {
+        const resultItem = element.closest('.result-item');
+        const title = resultItem.dataset.title || '';
+        const description = resultItem.dataset.description || '';
+        const emails = resultItem.dataset.emails ? resultItem.dataset.emails.split(',').join('; ') : '';
+        const phoneNumbers = resultItem.dataset.phone_numbers ? resultItem.dataset.phone_numbers.split(',').join('; ') : '';
+        const address = resultItem.dataset.address || '';
+
+        let textToCopy = '';
+        if (title) textToCopy += `Title: ${title}\n`;
+        if (description) textToCopy += `Description: ${description}\n`;
+        if (emails) textToCopy += `Emails: ${emails}\n`;
+        if (phoneNumbers) textToCopy += `Phone Numbers: ${phoneNumbers}\n`;
+        if (address) textToCopy += `Address: ${address}\n`;
+
+        copyToClipboard(textToCopy);
+        Swal.fire({
+            icon: 'success',
+            title: 'Result Copied!',
+            text: 'The result has been copied to your clipboard.',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+
+    document.getElementById('copyAllButton').addEventListener('click', function() {
+        let allText = '';
+        document.querySelectorAll('.result-item').forEach(item => {
+            const title = item.dataset.title || '';
+            const description = item.dataset.description || '';
+            const emails = item.dataset.emails ? item.dataset.emails.split(',').join('; ') : '';
+            const phoneNumbers = item.dataset.phone_numbers ? item.dataset.phone_numbers.split(',').join('; ') : '';
+            const address = item.dataset.address || '';
+
+            if (title) allText += `Title: ${title}\n`;
+            if (description) allText += `Description: ${description}\n`;
+            if (emails) allText += `Emails: ${emails}\n`;
+            if (phoneNumbers) allText += `Phone Numbers: ${phoneNumbers}\n`;
+            if (address) allText += `Address: ${address}\n\n`;
+        });
+
+        copyToClipboard(allText);
+        Swal.fire({
+            icon: 'success',
+            title: 'All Results Copied!',
+            text: 'All results have been copied to your clipboard.',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    });
+
+    
+
+    function copyToClipboard(text) {
+        navigator.clipboard.writeText(text).then(() => {
+            console.log('Text copied to clipboard');
+        }).catch(err => {
+            console.error('Failed to copy text: ', err);
+        });
+    }
+
+</script>
+{% endblock %}
